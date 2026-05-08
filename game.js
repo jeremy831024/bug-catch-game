@@ -1560,31 +1560,45 @@ function handleAssetLoaded(name, img) {
 }
 
 function loadAssets() {
-  // 先显示加载画面
+  // 游戏无需加载大图 — 虫子用Canvas画，只有图鉴页用照片
+  loadGameAssets();
+}
+
+function loadGameAssets() {
   drawLoadingScreen();
   initSprites();
-  // 地图贴片加载（简化版）
-  try {
-    const tileImgs = {};
-    ['grass1_tile','grass2_tile','grass3_tile','road2_tile','water1_tile','water2_tile'].forEach(name => {
-      const img = new Image();
-      img.src = 'assets/' + name + '.png';
-      tileImgs[name] = img;
-      trackImageLoad(img, 'tile_' + name);
-    });
-    window.tileImgs = tileImgs;
-  } catch(e) {}
+  // 只加载必要的地图贴片（小文件）
+  const tileList = [
+    'grass1_tile','grass2_tile','road2_tile','water1_tile'
+  ];
+  let loaded = 0;
+  window.tileImages = {};
+  tileList.forEach(name => {
+    const img = new Image();
+    img.onload = () => {
+      loaded++;
+      window.tileImages[name] = img;
+      if (loaded >= tileList.length) {
+        setTimeout(() => { loadingState.ready = true; drawLoadingScreen(); }, 200);
+      }
+    };
+    img.onerror = () => {
+      loaded++;
+      if (loaded >= tileList.length) {
+        setTimeout(() => { loadingState.ready = true; drawLoadingScreen(); }, 200);
+      }
+    };
+    img.src = 'assets/' + name + '.png';
+    // 如果图片已缓存
+    if (img.complete && img.naturalWidth > 0) {
+      window.tileImages[name] = img;
+      loaded++;
+    }
+  });
+  // 不管图片加载如何, 1.5秒后备启动
+  setTimeout(() => { loadingState.ready = true; drawLoadingScreen(); }, 1500);
   const files = {
     child: selectedCharFile,
-    grasshopper: "assets/grasshopper_small.png",
-    mantis: "assets/mantis_small.png",
-    beetle: "assets/beetle_small.png",
-    butterfly: "assets/butterfly_small.png",
-    cicada: "assets/cicada_small.png",
-    spider: "assets/spider_small.png",
-    dung: "assets/dung_small.png",
-    hole: "assets/hole.png",
-    // 卫星地图贴片
     grassTiles: ["assets/grass1_tile.png","assets/grass2_tile.png","assets/grass3_tile.png"],
     roadTiles: ["assets/road2_tile.png"],
     waterTiles: ["assets/water1_tile.png","assets/water2_tile.png"],
