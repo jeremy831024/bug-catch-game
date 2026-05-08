@@ -974,21 +974,25 @@ function drawHoles(time) {
   for (const burrow of state.burrows) {
     if (burrow.broken) continue;
     for (const exit of burrow.exits) {
-      drawHoleFallback(exit, burrow, time);
-      if (burrow.connected) {
-        ctx.save();
-        ctx.strokeStyle = "rgba(108, 255, 152, 0.5)";
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(exit.x, exit.y + 2, 18, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.restore();
-      }
+      // 2.5D 洞 — 有深度的地洞
+      const cx = exit.x, cy = exit.y;
       ctx.save();
-      ctx.fillStyle = "rgba(255,255,255,0.85)";
-      ctx.font = "11px sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText(burrow.style, exit.x, exit.y + 28);
+      // 外圈阴影
+      ctx.fillStyle = 'rgba(0,0,0,0.12)';
+      ctx.beginPath(); ctx.ellipse(cx + 2, cy + 3, 14, 7, 0, 0, 7); ctx.fill();
+      // 洞壁
+      ctx.fillStyle = 'rgba(60,40,20,0.5)'; ctx.beginPath(); ctx.ellipse(cx, cy, 11, 6, 0, 0, 7); ctx.fill();
+      // 内部深色
+      ctx.fillStyle = 'rgba(20,10,0,0.7)'; ctx.beginPath(); ctx.ellipse(cx, cy + 1, 7, 4, 0, 0, 7); ctx.fill();
+      // 连通洞绿色光晕
+      if (burrow.connected) {
+        ctx.fillStyle = 'rgba(100,255,150,0.1)';
+        ctx.beginPath(); ctx.ellipse(cx, cy, 14, 7, 0, 0, 7); ctx.fill();
+      }
+      // 标签
+      ctx.fillStyle = `rgba(255,255,255,${0.12 + Math.sin(time * 2) * 0.04})`;
+      ctx.font = '9px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(burrow.style || '洞', cx, cy + 15);
       ctx.restore();
     }
   }
@@ -1262,6 +1266,18 @@ function drawRealPlayer() {
 function drawPlayer() {
   if (state.finish) return;
   const sz = 48;
+  // 2.5D 投影
+  ctx.fillStyle = 'rgba(0,0,0,0.2)';
+  ctx.beginPath();
+  ctx.ellipse(player.x + 3, player.y + 5, sz * 0.35, sz * 0.1, 0, 0, 7);
+  ctx.fill();
+  // 抄子投影 (更远)
+  ctx.fillStyle = 'rgba(0,0,0,0.08)';
+  const d = player.dir;
+  ctx.beginPath();
+  ctx.ellipse(player.x + Math.cos(d) * 22 + 3, player.y + Math.sin(d) * 22 + 5, 8, 3, d, 0, 7);
+  ctx.fill();
+  
   const img = state.assets['child'];
   if (img && img.complete && img.naturalWidth > 0) {
     ctx.drawImage(img, player.x - sz/2, player.y - sz/2, sz, sz);
