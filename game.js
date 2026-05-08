@@ -418,10 +418,12 @@ function createBug(def) {
 }
 
 function spawnBugs() {
-  state.bugs = BUG_DEFS.map(createBug);
-  while (state.bugs.length < 12) {
+  // 初始只生成3-4只, 后续持续生成
+  state.bugs = [];
+  for (let i = 0; i < 4; i++) {
     state.bugs.push(createBug(BUG_DEFS[randInt(0, BUG_DEFS.length - 1)]));
   }
+  state.bugSpawnTimer = 3;
 }
 
 function drawSprite(name, x, y, size, fallback) {
@@ -1045,7 +1047,7 @@ function update(dt) {
   for (const bug of state.bugs) updateBug(bug, dt);
   updateFloats(dt);
   updateHUD();
-  if (state.time >= 90) finishGame();
+  // game time handled above
 }
 
 // 简化perlin噪声用于地图
@@ -1098,18 +1100,17 @@ function drawTerrain() {
 }
 
 function drawPondDetails(time) {
+  // 简单池塘渲染 — 无旋涡
   for (const pond of state.ponds) {
     const cx = pond.cx * TILE + TILE / 2;
     const cy = pond.cy * TILE + TILE / 2;
     ctx.save();
     ctx.translate(cx, cy);
-    ctx.strokeStyle = "rgba(255,255,255,0.2)";
-    ctx.lineWidth = 2;
-    for (let i = 0; i < 5; i++) {
-      ctx.beginPath();
-      ctx.ellipse(Math.sin(time * 0.8 + i) * 2, Math.cos(time * 0.9 + i) * 2, 18 + i * 4, 10 + i * 2, 0, 0, Math.PI * 2);
-      ctx.stroke();
-    }
+    // 水面反光
+    ctx.fillStyle = 'rgba(200,230,255,0.08)';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 20, 12, 0, 0, 7);
+    ctx.fill();
     ctx.restore();
   }
 }
