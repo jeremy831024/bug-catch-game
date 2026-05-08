@@ -111,6 +111,7 @@ function genMap(){
   for(let d=-1;d<=1;d++)for(let e=-1;e<=2;e++){let x=px+e,y=py+d;if(x>=0&&x<COLS&&y>=0&&y<ROWS)map[y][x]=2}
 }
 
+// ── 地形系统 ──
 function gT(x,y){
   let tx=x/T|0,ty=y/T|0;
   if(tx<0||tx>=COLS||ty<0||ty>=ROWS)return 1;
@@ -125,8 +126,9 @@ function genHoles(){
     let x,y,a=0;
     do{x=2+Math.random()*(COLS-4)|0;y=2+Math.random()*(ROWS-4)|0;a++}while(map[y][x]!==0&&a<30);
     if(map[y][x]===0){
-      holes.push({x,y,connected:Math.random()>.5,d bug:null,timer:0,
-        style:['土洞','草洞','树洞','花洞','网洞','粪洞'][Math.random()*6|0]});
+      let styles=['土洞','草洞','树洞','花洞','网洞','粪洞'];
+      holes.push({x,y,connected:Math.random()>.5,dbug:null,timer:0,
+        style:styles[Math.random()*6|0]});
     }
   }
   // 连通洞成对出现
@@ -153,7 +155,7 @@ let spawnTimer=0;
 function mkBug(type,edge){
   let b={...type,x:0,y:0,vx:0,vy:0,dir:Math.random()*6.28,spd:type.spd+Math.random()*8,
     flying:false,fStamina:type.stm,fMaxStm:type.stm,scared:false,mCt:Math.random()*100,
-    jumping:false,jumpCt:0,hide:false,cicadaTimer:0,webX:0,webY:0};
+    jumping:false,jumpCt:0,hide:false,cicadaTimer:0,webX:0,webY:0,inHole:false};
   if(edge&&type.id==='cicada'){
     b.x=Math.random()<.5?10:W-10;b.y=20+Math.random()*(H-40);
   }else{
@@ -233,8 +235,8 @@ function useShovel(){
   let hi=holes.findIndex(h=>h.x===tx&&h.y===ty);
   if(hi<0){addFloat(pl.x,pl.y-10,'🔧 这里没有洞','rgba(255,255,255,.5)');return;}
   let h=holes[hi];
-  // 查洞里有没有虫子
-  let bi=bugs.findIndex(b=>b.x===tx*T+T/2&&b.y===ty*T+T/2+10);
+  // 查洞里有没有虫子 (使用 dbug 引用，比坐标匹配更可靠)
+  let bi=h.dbug?bugs.indexOf(h.dbug):-1;
   if(!h.connected&&bi>=0){
     // 死路洞+有虫
     score+=30+bugs[bi].pts;
@@ -467,9 +469,14 @@ function draw(){
       ctx.fillStyle='rgba(100,255,150,.15)';ctx.beginPath();ctx.ellipse(cx,cy,14,9,0,0,7);ctx.fill();
     }
     // 洞内虫子
-    if(h.dbug){
-      ctx.fillStyle='rgba(255,255,255,.3)';ctx.font='12px sans-serif';ctx.textAlign='center';
+    if(h.dbug&&!gameOver){
+      // 画虫子的眼睛从洞里露出来
+      ctx.fillStyle='rgba(255,255,200,.5)';ctx.font='14px sans-serif';ctx.textAlign='center';
       ctx.fillText('👀',cx,cy-2);
+      // 画个进度条显示剩余时间
+      let pct = h.timer / (5+10);
+      ctx.fillStyle='rgba(255,255,255,.15)';ctx.fillRect(cx-10,cy-7,20,3);
+      ctx.fillStyle='rgba(255,200,100,.5)';ctx.fillRect(cx-10,cy-7,20*pct,3);
     }
     ctx.fillStyle='rgba(255,255,255,.2)';ctx.font='7px sans-serif';ctx.textAlign='center';
     ctx.fillText(h.style,cx,cy+14);
