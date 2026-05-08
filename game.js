@@ -1560,43 +1560,8 @@ function handleAssetLoaded(name, img) {
 }
 
 function loadAssets() {
-  // 游戏无需加载大图 — 虫子用Canvas画，只有图鉴页用照片
-  loadGameAssets();
-}
-
-function loadGameAssets() {
-  drawLoadingScreen();
+  // 游戏秒开, 不加载图片
   initSprites();
-  // 只加载必要的地图贴片（小文件）
-  const tileList = [
-    'grass1_tile','grass2_tile','road2_tile','water1_tile'
-  ];
-  let loaded = 0;
-  window.tileImages = {};
-  tileList.forEach(name => {
-    const img = new Image();
-    img.onload = () => {
-      loaded++;
-      window.tileImages[name] = img;
-      if (loaded >= tileList.length) {
-        setTimeout(() => { loadingState.ready = true; drawLoadingScreen(); }, 200);
-      }
-    };
-    img.onerror = () => {
-      loaded++;
-      if (loaded >= tileList.length) {
-        setTimeout(() => { loadingState.ready = true; drawLoadingScreen(); }, 200);
-      }
-    };
-    img.src = 'assets/' + name + '.png';
-    // 如果图片已缓存
-    if (img.complete && img.naturalWidth > 0) {
-      window.tileImages[name] = img;
-      loaded++;
-    }
-  });
-  // 不管图片加载如何, 1.5秒后备启动
-  setTimeout(() => { loadingState.ready = true; drawLoadingScreen(); }, 1500);
   const files = {
     child: selectedCharFile,
     grassTiles: ["assets/grass1_tile.png","assets/grass2_tile.png","assets/grass3_tile.png"],
@@ -1697,17 +1662,13 @@ function initGame() {
   buildMap();
   createBurrows();
   spawnBugs();
-  loadAssets();
+  // 直接启动, 不加载图片 (虫子用Canvas画)
   ui.poisonWrap.style.display = "none";
-  // 等待加载完成后启动
-  const checkInterval = setInterval(() => {
-    if (loadingState.ready || (loadingState.total > 0 && loadingState.loaded >= loadingState.total)) {
-      loadingState.ready = true;
-      clearInterval(checkInterval);
-      drawLoadingScreen();
-      setTimeout(() => requestAnimationFrame(loop), 500);
-    }
-  }, 200);
+  // 简单显示加载中的文字
+  drawLoadingScreen();
+  setTimeout(() => {
+    requestAnimationFrame(loop);
+  }, 300);
 }
 
 window.generateAssets = generateAssets;
