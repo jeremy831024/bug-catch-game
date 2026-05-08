@@ -904,27 +904,50 @@ function update(dt) {
   if (state.time >= 90) finishGame();
 }
 
+// 简化perlin噪声用于地图
+let pSeed=[];
+for(let i=0;i<256;i++)pSeed.push(Math.random());
+function pNoise(x,y){
+  let ix=x|0,iy=y|0;
+  let fx=x-ix,fy=y-iy;
+  fx=fx*fx*(3-2*fx);fy=fy*fy*(3-2*fy);
+  let a=pSeed[(ix&255)+(iy&255)*37&255];
+  let b=pSeed[((ix+1)&255)+(iy&255)*37&255];
+  let c=pSeed[(ix&255)+((iy+1)&255)*37&255];
+  let d=pSeed[((ix+1)&255)+((iy+1)&255)*37&255];
+  return a+(b-a)*fx+(c-a)*fy*((d-c)-(b-a));
+}
+
 function drawTerrain() {
   for (let ty = 0; ty < ROWS; ty++) {
     for (let tx = 0; tx < COLS; tx++) {
       const tile = state.map[ty][tx];
-      if (tile === "grass") {
-        ctx.fillStyle = (tx + ty) % 3 === 0 ? "#64b85c" : (tx + ty) % 3 === 1 ? "#5aaf52" : "#4ea447";
+      const cx = tx * TILE, cy = ty * TILE;
+      if (tile === "water") {
+        // 池塘 — 卫星图效果
+        const wat = Math.sin(state.time * 0.5 + tx + ty) * 3;
+        ctx.fillStyle = `hsl(210,68%,${45 + wat}%)`;
+        ctx.fillRect(cx, cy, TILE, TILE);
+        ctx.fillStyle = `rgba(200,230,255,${0.06 + Math.sin(state.time * 2 + tx * 0.5 + ty * 0.3) * 0.03})`;
+        ctx.fillRect(cx + 4, cy + 6, TILE - 8, 3);
       } else if (tile === "road") {
-        ctx.fillStyle = (tx + ty) % 2 === 0 ? "#9d8971" : "#8f7b65";
+        // 山路 — 航拍棕色
+        const n = pNoise(tx * 2.5, ty * 2.5);
+        ctx.fillStyle = `hsl(35,12%,${42 + n * 12}%)`;
+        ctx.fillRect(cx, cy, TILE, TILE);
+        ctx.fillStyle = `rgba(80,70,50,${0.08 + n * 0.12})`;
+        ctx.beginPath(); ctx.arc(cx + 8 + n * 10, cy + 8 + n * 10, 2 + n * 3, 0, 7); ctx.fill();
       } else {
-        ctx.fillStyle = (tx + ty) % 2 === 0 ? "#59afe9" : "#4ea0dc";
-      }
-      ctx.fillRect(tx * TILE, ty * TILE, TILE, TILE);
-      if (tile === "grass") {
-        ctx.fillStyle = "rgba(255,255,255,0.06)";
-        ctx.fillRect(tx * TILE + 6, ty * TILE + 5, 4, 10);
-      } else if (tile === "road") {
-        ctx.fillStyle = "rgba(74, 57, 42, 0.18)";
-        ctx.fillRect(tx * TILE + 4, ty * TILE + 18, 6, 3);
-      } else {
-        ctx.fillStyle = "rgba(255,255,255,0.14)";
-        ctx.fillRect(tx * TILE + 3, ty * TILE + 4, 8, 2);
+        // 草地 — 航拍风格，噪点纹理
+        const n1 = pNoise(tx * 1.7, ty * 1.7), n2 = pNoise(tx * 0.3, ty * 0.3);
+        const h = 62 + n1 * 18 + n2 * 5;
+        ctx.fillStyle = `hsl(105,48%,${h}%)`;
+        ctx.fillRect(cx, cy, TILE, TILE);
+        // 植被纹理斑点
+        if (n1 > 0.15) {
+          ctx.fillStyle = `rgba(45,110,35,${(n1 - 0.15) * 0.12})`;
+          ctx.beginPath(); ctx.arc(cx + 8 + n1 * 16, cy + 10 + n1 * 12, 2 + n1 * 3, 0, 7); ctx.fill();
+        }
       }
     }
   }
@@ -971,37 +994,116 @@ function drawHoles(time) {
   }
 }
 
-function drawBug(bug, time) {
-  const imgSize = 52;
-  const alpha = bug.id === "mantis" && !state.poison ? bug.alpha : 1;
-  ctx.save();
-  ctx.globalAlpha = bug.holeId ? 0.35 : alpha;
-  if (bug.id === "dung") {
-    ctx.fillStyle = "#7e5e3f";
-    ctx.beginPath();
-    ctx.ellipse(bug.ball.x, bug.ball.y, 10, 9, 0, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  drawSprite(bug.asset, bug.x, bug.y, imgSize, () => drawBugFallback(bug, bug.x, bug.y, imgSize, ctx.globalAlpha));
-  if (bug.id === "butterfly") {
-    ctx.strokeStyle = "rgba(255,255,255,0.35)";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(bug.x, bug.y);
-    ctx.lineTo(bug.x - 16, bug.y + Math.sin(time * 10) * 4);
-    ctx.stroke();
-  }
-  if (bug.id === "cicada") {
-    ctx.fillStyle = "rgba(255, 231, 164, 0.9)";
-    ctx.font = "12px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("知了", bug.x, bug.y - 22);
+// 真实风格昆虫绘制
+function drawRealBug(bug) {
+  const bx = bug.x, by = bug.y - (bug.flying ? 14 : 0);
+  const sz = bug.size || 12;
+  ctx.save(); ctx.translate(bx, by);
+  
+  // 影子
+  ctx.fillStyle = 'rgba(0,0,0,0.12)'; ctx.beginPath();
+  ctx.ellipse(2, sz * 0.6, sz * 0.6, 3, 0, 0, 7); ctx.fill();
+  
+  if (bug.id === 'hopper') {
+    ctx.fillStyle = '#5a8a30'; ctx.beginPath(); ctx.ellipse(0, 0, sz * 0.8, sz * 0.4, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#6a8a40'; ctx.beginPath(); ctx.arc(sz * 0.6, -sz * 0.1, sz * 0.3, 0, 7); ctx.fill();
+    ctx.fillStyle = '#222'; ctx.beginPath();
+    ctx.arc(sz * 0.7, -sz * 0.15, 1.5, 0, 7); ctx.arc(sz * 0.7, sz * 0.05, 1.5, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#5a7a28'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(-sz * 0.3, sz * 0.2); ctx.lineTo(-sz * 0.7, sz * 0.7); ctx.lineTo(-sz * 0.5, sz * 0.8); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-sz * 0.3, -sz * 0.2); ctx.lineTo(-sz * 0.7, -sz * 0.7); ctx.lineTo(-sz * 0.5, -sz * 0.8); ctx.stroke();
+    ctx.fillStyle = 'rgba(150,200,100,0.25)'; ctx.beginPath(); ctx.ellipse(-sz * 0.1, -sz * 0.35, sz * 0.4, sz * 0.15, -0.1, 0, 7); ctx.fill();
+    
+  } else if (bug.id === 'mantis') {
+    ctx.fillStyle = '#4a7a30'; ctx.beginPath();
+    ctx.moveTo(-sz * 0.8, 0); ctx.lineTo(0, -sz * 0.2); ctx.lineTo(sz * 0.8, -sz * 0.1);
+    ctx.lineTo(sz * 0.8, sz * 0.1); ctx.lineTo(0, sz * 0.2); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#5a8a30'; ctx.beginPath();
+    ctx.moveTo(sz * 0.6, -sz * 0.3); ctx.lineTo(sz * 1.1, 0); ctx.lineTo(sz * 0.6, sz * 0.3); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#ff4444'; ctx.beginPath(); ctx.arc(sz * 0.9, -sz * 0.1, 2, 0, 7); ctx.arc(sz * 0.9, sz * 0.1, 2, 0, 7); ctx.fill();
+    
+  } else if (bug.id === 'beetle') {
+    ctx.fillStyle = '#4a2a10'; ctx.beginPath(); ctx.ellipse(0, 0, sz * 0.9, sz * 0.5, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#3a2a10'; ctx.beginPath(); ctx.arc(sz * 0.6, -sz * 0.05, sz * 0.3, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#2a1a00'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(sz * 0.7, -sz * 0.15); ctx.lineTo(sz * 1.1, -sz * 0.35); ctx.lineTo(sz * 1.2, -sz * 0.2); ctx.stroke();
+    
+  } else if (bug.id === 'butterfly') {
+    const w = bug.flying ? Math.sin(state.time * 12) * 0.3 : 0.05;
+    ctx.fillStyle = '#ff88c0'; ctx.beginPath(); ctx.ellipse(-sz * 0.4, -sz * 0.2 + w, sz * 0.6, sz * 0.4, -0.2, 0, 7); ctx.fill();
+    ctx.fillStyle = '#ff88c0'; ctx.beginPath(); ctx.ellipse(sz * 0.4, -sz * 0.2 + w, sz * 0.6, sz * 0.4, 0.2, 0, 7); ctx.fill();
+    ctx.fillStyle = '#2a2a2a'; ctx.beginPath(); ctx.ellipse(0, 0, sz * 0.1, sz * 0.3, 0, 0, 7); ctx.fill();
+    
+  } else if (bug.id === 'cicada') {
+    ctx.fillStyle = '#4a6a3a'; ctx.fillRect(-4, -14, 8, 22);
+    ctx.fillStyle = '#5a8a3a'; ctx.beginPath(); ctx.arc(0, -16, 12, 0, 7); ctx.fill();
+    ctx.fillStyle = '#3a4a2a'; ctx.beginPath(); ctx.ellipse(0, -12, 5, 4, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#cc3333'; ctx.beginPath(); ctx.arc(-2, -13, 1.5, 0, 7); ctx.arc(2, -13, 1.5, 0, 7); ctx.fill();
+    
+  } else if (bug.id === 'spider') {
+    ctx.strokeStyle = 'rgba(200,200,200,0.12)'; ctx.lineWidth = 0.5;
+    for (let i = 0; i < 8; i++) { const a = i * 0.785; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.cos(a) * sz * 2.5, Math.sin(a) * sz * 2.5); ctx.stroke(); }
+    ctx.fillStyle = '#2a2a2a'; ctx.beginPath(); ctx.ellipse(0, 0, sz * 0.4, sz * 0.35, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#1a1a1a'; ctx.beginPath(); ctx.ellipse(0, -sz * 0.3, sz * 0.3, sz * 0.25, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#ff4444'; ctx.beginPath(); ctx.arc(-sz * 0.15, -sz * 0.35, 1.5, 0, 7); ctx.arc(sz * 0.15, -sz * 0.35, 1.5, 0, 7); ctx.fill();
+    
+  } else if (bug.id === 'dung') {
+    ctx.fillStyle = '#5a3a1a'; ctx.beginPath(); ctx.arc(sz * 0.5, sz * 0.3, sz * 0.6, 0, 7); ctx.fill();
+    ctx.fillStyle = '#2a1a0a'; ctx.beginPath(); ctx.ellipse(0, 0, sz * 0.6, sz * 0.35, 0, 0, 7); ctx.fill();
   }
   ctx.restore();
 }
 
+function drawBug(bug) {
+  if (!bug) return;
+  const alpha = bug.id === "mantis" && !state.poison ? 0.3 : 1;
+  ctx.save();
+  ctx.globalAlpha = bug.holeId ? 0.25 : alpha;
+  drawRealBug(bug);
+  if (bug.id === "cicada" && bug.showCall) {
+    ctx.fillStyle = "rgba(255,231,164,0.9)";
+    ctx.font = "bold 13px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("知了!", bug.x, bug.y - 26);
+  }
+  ctx.restore();
+}
+
+function drawRealPlayer() {
+  if (state.finish) return;
+  ctx.save(); ctx.translate(player.x, player.y);
+  const sz = 22;
+  // 影子
+  ctx.fillStyle = 'rgba(0,0,0,0.18)'; ctx.beginPath();
+  ctx.ellipse(2, sz * 0.6, sz * 0.7, 4, 0, 0, 7); ctx.fill();
+  // 身体
+  ctx.fillStyle = state.poison > 0 ? '#a080c0' : '#e8c8a8';
+  ctx.beginPath(); ctx.arc(0, 0, sz, 0, 7); ctx.fill();
+  // 头
+  ctx.fillStyle = state.poison > 0 ? '#c090e0' : '#f0d8b8';
+  ctx.beginPath(); ctx.arc(0, -sz * 0.3, sz * 0.5, 0, 7); ctx.fill();
+  // 帽子
+  ctx.fillStyle = '#c89830';
+  ctx.beginPath(); ctx.ellipse(0, -sz * 0.6, sz * 0.55, sz * 0.12, 0, 0, 7); ctx.fill();
+  ctx.fillRect(-sz * 0.4, -sz * 0.8, sz * 0.8, sz * 0.25);
+  // 眼
+  ctx.fillStyle = '#333'; ctx.beginPath();
+  ctx.arc(-sz * 0.2, -sz * 0.35, 2.5, 0, 7); ctx.arc(sz * 0.2, -sz * 0.35, 2.5, 0, 7); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.beginPath();
+  ctx.arc(-sz * 0.17, -sz * 0.38, 1, 0, 7); ctx.arc(sz * 0.23, -sz * 0.38, 1, 0, 7); ctx.fill();
+  // 抄子
+  const d = player.dir;
+  ctx.strokeStyle = '#8B4513'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(Math.cos(d) * sz * 0.5, Math.sin(d) * sz * 0.5);
+  ctx.lineTo(Math.cos(d) * (sz + 18), Math.sin(d) * (sz + 18)); ctx.stroke();
+  ctx.strokeStyle = 'rgba(200,200,200,0.4)'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(Math.cos(d) * (sz + 22), Math.sin(d) * (sz + 22), 8, 0, 7); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,0.08)'; ctx.fill();
+  ctx.restore();
+}
+
 function drawPlayer() {
-  drawSprite("child", player.x, player.y, 58, () => drawPlayerFallback(player.x, player.y, 58, state.poison > 0));
+  drawRealPlayer();
 }
 
 function drawFloats() {
