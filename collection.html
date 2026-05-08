@@ -1,84 +1,79 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>📖 昆虫图鉴</title>
-<link rel="stylesheet" href="style.css">
-<style>
-.container{
-width:100%;max-width:700px;
-background:rgba(255,255,255,.06);backdrop-filter:blur(20px);
-border-radius:24px;padding:28px;color:#fff;
-border:1px solid rgba(255,255,255,.1);
-}
-h1{text-align:center;font-size:28px;margin-bottom:20px}
-.back{display:inline-block;color:rgba(255,255,255,.5);text-decoration:none;font-size:14px;margin-bottom:12px}
-.back:hover{color:#fff}
-
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
-.card{
-background:rgba(255,255,255,.08);border-radius:16px;padding:16px;text-align:center;
-border:1px solid rgba(255,255,255,.1);transition:.2s;
-}
-.card.caught{border-color:rgba(100,255,150,.3);background:rgba(100,255,150,.06)}
-.card.missing{opacity:.5}
-.card .icon{font-size:40px;margin-bottom:8px}
-.card .name{font-size:15px;font-weight:600}
-.card .rarity{font-size:11px;opacity:.5;margin:2px 0}
-.card .pts{font-size:13px}
-.card .count{font-size:12px;color:#81c784;margin-top:4px}
-.card .desc{font-size:10px;opacity:.4;margin-top:2px}
-.poison-badge{display:inline-block;padding:1px 6px;border-radius:6px;background:rgba(171,71,188,.3);font-size:10px;color:#ce93d8}
-
-.empty{text-align:center;opacity:.5;padding:40px;font-size:16px}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📖 昆虫图鉴</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="container">
-  <a href="index.html" class="back">← 返回首页</a>
-  <h1>📖 昆虫图鉴</h1>
-  <div class="grid" id="grid"></div>
-</div>
-<script>
-const BUGS=[
-  {id:'hopper',name:'蚂蚱',icon:'🦗',rarity:'⭐ 普通',pts:10,psn:false,desc:'会跳的绿色小虫'},
-  {id:'mantis',name:'螳螂',icon:'🦟',rarity:'⭐ 普通',pts:15,psn:false,desc:'会埋伏的猎手'},
-  {id:'beetle',name:'独角仙',icon:'🪲',rarity:'⭐⭐ 稀有',pts:50,psn:false,desc:'耐力超强'},
-  {id:'butterfly',name:'蝴蝶',icon:'🦋',rarity:'⭐⭐ 稀有',pts:30,psn:false,desc:'飞行轨迹飘忽'},
-  {id:'cicada',name:'知了',icon:'🦗',rarity:'⭐ 普通',pts:20,psn:false,desc:'夏日鸣叫'},
-  {id:'spider',name:'蜘蛛',icon:'🕷️',rarity:'⭐ 普通',pts:25,psn:true,desc:'有毒！小心'},
-  {id:'dung',name:'屎壳郎',icon:'💩',rarity:'💀 陷阱',pts:-10,psn:true,desc:'扣分！有毒！'},
-];
+  <main class="collection-page">
+    <section class="collection-shell glass-shell">
+      <header class="collection-header">
+        <h1>📖 昆虫图鉴</h1>
+        <a class="btn small-btn" href="index.html">🏠 首页</a>
+      </header>
+      <div class="bug-grid" id="bugGrid"></div>
+    </section>
+  </main>
 
-let caught=JSON.parse(localStorage.getItem('bugRanks')||'[]');
-// 从最新记录中提取捕获数
-let allCaught={};
-for(let r of caught){
-  if(r.bugs)for(let[k,v]of Object.entries(r.bugs))allCaught[k]=(allCaught[k]||0)+v;
-}
+  <script>
+    const BUGS = [
+      { id: "grasshopper", name: "蚂蚱", rarity: "⭐ 普通", points: 10, toxic: false, asset: "grasshopper", desc: "会跳跃移动，常从草地洞口钻进钻出。" },
+      { id: "mantis", name: "螳螂", rarity: "⭐ 普通", points: 15, toxic: false, asset: "mantis", desc: "静止时半透明，靠近它才会迅速逃开。" },
+      { id: "beetle", name: "独角仙", rarity: "⭐⭐ 稀有", points: 50, toxic: false, asset: "beetle", desc: "移动慢但耐力很好，能飞很久。" },
+      { id: "butterfly", name: "蝴蝶", rarity: "⭐⭐ 稀有", points: 30, toxic: false, asset: "butterfly", desc: "路线飘忽，像波浪一样飞行。" },
+      { id: "cicada", name: "知了", rarity: "⭐ 普通", points: 20, toxic: false, asset: "cicada", desc: "停在地图边缘的树上，会喊“知了”。" },
+      { id: "spider", name: "蜘蛛", rarity: "⭐ 少见", points: 25, toxic: true, asset: "spider", desc: "在网内移动很快，碰到会中毒。" },
+      { id: "dung", name: "屎壳郎", rarity: "💀 陷阱", points: -10, toxic: true, asset: "dung", desc: "推着粪球移动，碰到会扣分并中毒。" },
+    ];
 
-let grid=document.getElementById('grid');
-for(let b of BUGS){
-  let cnt=allCaught[b.id]||0;
-  let c=document.createElement('div');
-  c.className='card'+(cnt>0?' caught':' missing');
-  c.innerHTML=`
-    <div class="icon">${b.icon}</div>
-    <div class="name">${b.name}</div>
-    <div class="rarity">${b.rarity}</div>
-    <div class="pts">${b.pts>0?'+':''}${b.pts}分${b.psn?' <span class="poison-badge">有毒</span>':''}</div>
-    ${cnt>0?`<div class="count">✅ 已捕获 ×${cnt}</div>`:'<div class="count" style="opacity:.3">❌ 未捕获</div>'}
-    <div class="desc">${b.desc}</div>
-  `;
-  grid.appendChild(c);
-}
+    function readCaught() {
+      try {
+        const raw = JSON.parse(localStorage.getItem("bugCatchCaught") || "{}");
+        return raw && typeof raw === "object" ? raw : {};
+      } catch {
+        return {};
+      }
+    }
 
-if(Object.keys(allCaught).length===0){
-  let e=document.createElement('div');
-  e.className='empty';e.textContent='还没有抓到任何虫子，快去游戏里抓吧！';
-  document.querySelector('.container').appendChild(e);
-}
-</script>
+    function readLegacyCaught() {
+      try {
+        const ranks = JSON.parse(localStorage.getItem("bugRanks") || "[]");
+        return ranks.reduce((acc, item) => {
+          if (item.bugs) {
+            Object.entries(item.bugs).forEach(([key, value]) => {
+              acc[key] = (acc[key] || 0) + value;
+            });
+          }
+          return acc;
+        }, {});
+      } catch {
+        return {};
+      }
+    }
+
+    const grid = document.getElementById("bugGrid");
+    const caught = { ...readLegacyCaught() };
+    const current = readCaught();
+    Object.entries(current).forEach(([key, value]) => {
+      caught[key] = (caught[key] || 0) + value;
+    });
+
+    grid.innerHTML = BUGS.map((bug) => {
+      const count = caught[bug.id] || 0;
+      const points = `${bug.points > 0 ? "+" : ""}${bug.points} 分`;
+      return `
+        <article class="bug-card ${count ? "caught" : "missing"}">
+          <img src="assets/${bug.asset}.png" alt="${bug.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex'">
+          <span class="asset-icon" style="display:none;align-items:center;justify-content:center;font-size:50px">${bug.toxic ? "⚠️" : "🐛"}</span>
+          <div class="bug-name">${bug.name}</div>
+          <div class="bug-meta">${bug.rarity} · ${points}${bug.toxic ? " · 有毒" : ""}</div>
+          <div class="bug-count">${count ? `已捕获 × ${count}` : "未捕获"}</div>
+          <div class="bug-desc">${bug.desc}</div>
+        </article>
+      `;
+    }).join("");
+  </script>
 </body>
 </html>

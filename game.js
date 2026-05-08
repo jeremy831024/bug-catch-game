@@ -124,6 +124,17 @@ function updateLeaderboard() {
   }
 }
 
+function storeCaught(bugId) {
+  let caught = {};
+  try {
+    caught = JSON.parse(localStorage.getItem("bugCatchCaught") || "{}");
+  } catch {
+    caught = {};
+  }
+  caught[bugId] = (caught[bugId] || 0) + 1;
+  localStorage.setItem("bugCatchCaught", JSON.stringify(caught));
+}
+
 function buildMap() {
   state.map = Array.from({ length: ROWS }, () => Array(COLS).fill("grass"));
 
@@ -326,139 +337,6 @@ function drawSprite(name, x, y, size, fallback) {
   fallback();
 }
 
-function drawPlayerFallback(x, y, size, poisoned) {
-  ctx.save();
-  ctx.translate(x, y);
-  const shirt = poisoned ? "#ba74e8" : "#ffdf8a";
-  const skin = poisoned ? "#f3c7a2" : "#f5d0a6";
-  ctx.fillStyle = shirt;
-  ctx.beginPath();
-  ctx.arc(0, 4, size * 0.34, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = skin;
-  ctx.beginPath();
-  ctx.arc(0, -size * 0.14, size * 0.26, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = "#d6a241";
-  ctx.beginPath();
-  ctx.moveTo(-size * 0.34, -size * 0.22);
-  ctx.lineTo(size * 0.34, -size * 0.22);
-  ctx.lineTo(size * 0.18, -size * 0.48);
-  ctx.lineTo(-size * 0.18, -size * 0.48);
-  ctx.closePath();
-  ctx.fill();
-  ctx.fillRect(-size * 0.44, -size * 0.18, size * 0.88, size * 0.1);
-  ctx.fillStyle = "#2b2b2b";
-  ctx.beginPath();
-  ctx.arc(-size * 0.09, -size * 0.08, 2.3, 0, Math.PI * 2);
-  ctx.arc(size * 0.09, -size * 0.08, 2.3, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = "#8b5a2b";
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(0, 0);
-  ctx.lineTo(Math.cos(player.dir) * (size * 0.9), Math.sin(player.dir) * (size * 0.9));
-  ctx.stroke();
-  ctx.strokeStyle = "rgba(255,255,255,0.45)";
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.arc(Math.cos(player.dir) * (size * 1.05), Math.sin(player.dir) * (size * 1.05), 8, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.restore();
-}
-
-function drawBugFallback(bug, x, y, size, alpha) {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.globalAlpha = alpha;
-  const body = {
-    grasshopper: "#8acc3f",
-    mantis: "#70b74b",
-    beetle: "#6a4122",
-    butterfly: "#f19aca",
-    cicada: "#7e6c4f",
-    spider: "#2d2430",
-    dung: "#6a4f34",
-  }[bug.id] || "#78bc5a";
-  const accent = {
-    grasshopper: "#d6f28a",
-    mantis: "#b8ef9c",
-    beetle: "#a46b34",
-    butterfly: "#ffc6ea",
-    cicada: "#574c33",
-    spider: "#bdb2cb",
-    dung: "#8e6b48",
-  }[bug.id] || "#fff";
-
-  if (bug.id === "cicada") {
-    ctx.fillStyle = "#7f9c53";
-    ctx.fillRect(-4, 2, 8, 24);
-    ctx.fillStyle = "#5b7c34";
-    ctx.beginPath();
-    ctx.arc(0, -8, 10, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = body;
-    ctx.beginPath();
-    ctx.ellipse(0, 5, 10, 14, 0, 0, Math.PI * 2);
-    ctx.fill();
-  } else if (bug.id === "butterfly") {
-    ctx.fillStyle = accent;
-    ctx.beginPath();
-    ctx.ellipse(-7, -2, 11, 14, -0.4, 0, Math.PI * 2);
-    ctx.ellipse(7, -2, 11, 14, 0.4, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = body;
-    ctx.fillRect(-2, -10, 4, 22);
-  } else if (bug.id === "spider") {
-    ctx.strokeStyle = "rgba(255,255,255,0.38)";
-    ctx.lineWidth = 1;
-    for (let i = 0; i < 6; i++) {
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(Math.cos(i * 1.04) * 18, Math.sin(i * 1.04) * 14);
-      ctx.stroke();
-    }
-    ctx.fillStyle = body;
-    ctx.beginPath();
-    ctx.arc(0, 0, 8, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(0, -10, 6, 0, Math.PI * 2);
-    ctx.fill();
-  } else if (bug.id === "dung") {
-    ctx.fillStyle = "#87694a";
-    ctx.beginPath();
-    ctx.arc(9, 7, 9, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = body;
-    ctx.beginPath();
-    ctx.ellipse(-2, 2, 9, 11, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#3a2616";
-    ctx.beginPath();
-    ctx.arc(12, 6, 4, 0, Math.PI * 2);
-    ctx.fill();
-  } else {
-    ctx.fillStyle = body;
-    ctx.beginPath();
-    ctx.ellipse(0, 0, 12, 8, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = accent;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(-8, 3);
-    ctx.lineTo(-15, 11);
-    ctx.moveTo(8, 3);
-    ctx.lineTo(15, 11);
-    ctx.stroke();
-    ctx.fillStyle = accent;
-    ctx.beginPath();
-    ctx.arc(0, -9, 4, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  ctx.restore();
-}
-
 function drawHoleFallback(exit, burrow, time) {
   const x = exit.x;
   const y = exit.y;
@@ -587,6 +465,7 @@ function initAudio() {
 function pushCatch(bug, x, y, extra = 0) {
   state.score += bug.points + extra;
   state.caught[bug.id] = (state.caught[bug.id] || 0) + 1;
+  storeCaught(bug.id);
   addFloat(x, y, `${bug.points >= 0 ? "+" : ""}${bug.points + extra}`, bug.points >= 0 ? "#ffd349" : "#ff6f6f");
   if (bug.toxic) triggerPoison();
   if (state.audio) state.audio.catch();
@@ -656,14 +535,13 @@ function shovelHole() {
   if (bug) {
     pushCatch(bug, exit.x, exit.y - 8, 30);
     state.stamina = clamp(state.stamina - 10, 0, 100);
-    bug.holeId = null;
-    bug.holeExitId = null;
-    bug.holeCooldown = state.time + rand(4, 7);
-    bug.x = exit.x + rand(-12, 12);
-    bug.y = exit.y + rand(-12, 12);
+    const bugIndex = state.bugs.indexOf(bug);
+    if (bugIndex >= 0) state.bugs.splice(bugIndex, 1);
+    burrow.broken = true;
     addFloat(player.x, player.y - 24, "死路洞 +30", "#8cff95");
   } else {
     state.stamina = clamp(state.stamina - 25, 0, 100);
+    burrow.broken = true;
     addFloat(player.x, player.y - 24, "空洞 -25", "#ff9f4a");
   }
   if (state.audio) state.audio.shovel();
@@ -1019,7 +897,6 @@ function update(dt) {
   state.time += dt;
   updatePoison(dt);
   updatePlayer(dt);
-  updateBurrows(dt);
   updateHoles(dt);
   for (const bug of state.bugs) updateBug(bug, dt);
   updateFloats(dt);
@@ -1278,8 +1155,4 @@ function initGame() {
 
 window.generateAssets = generateAssets;
 window.bugCatchState = state;
-window.addEventListener("beforeunload", () => {
-  if (state.ended) updateLeaderboard();
-});
-
 initGame();
