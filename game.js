@@ -1,6 +1,27 @@
-// 选中的角色
-const SELECTED_CHAR = localStorage.getItem('selectedChar') || 'child';
-const selectedCharFile = SELECTED_CHAR === 'child' ? 'assets/child_small.png' : 'assets/' + SELECTED_CHAR + '_small.png';
+// 选中的角色 (支持自定义+预设)
+let selectedCharFile = 'assets/child_small.png';
+let playerName = '小探险家';
+try {
+  const saved = JSON.parse(localStorage.getItem('selectedChar'));
+  if (saved && saved.name) {
+    playerName = saved.name;
+    // 自定义角色渲染在creator.html中处理
+    selectedCharFile = 'assets/child_small.png'; // fallback
+  } else {
+    // 预设角色
+    const id = localStorage.getItem('selectedChar') || 'child';
+    selectedCharFile = id === 'child' ? 'assets/child_small.png' : 'assets/' + id + '_small.png';
+    playerName = localStorage.getItem('selectedCharName') || '小探险家';
+  }
+} catch {
+  // 旧版预设
+  const id = localStorage.getItem('selectedChar') || 'child';
+  selectedCharFile = id === 'child' ? 'assets/child_small.png' : 'assets/' + id + '_small.png';
+  playerName = localStorage.getItem('selectedCharName') || '小探险家';
+}
+
+// 保存玩家名到排行榜用
+const SAVE_NAME = playerName;
 
 // ── 加载系统 ──
 let loadingState = { total: 0, loaded: 0, errors: 0, ready: false };

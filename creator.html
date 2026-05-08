@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🐛 抓虫大冒险 - 创造角色</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+min-height:100vh;display:flex;align-items:center;justify-content:center;
+font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+background:linear-gradient(135deg,#2d5a2d,#1a3a1a);
+padding:16px;
+}
+.container{
+width:100%;max-width:780px;
+background:rgba(255,255,255,.07);backdrop-filter:blur(20px);
+border-radius:24px;padding:24px 28px;color:#fff;
+border:1px solid rgba(255,255,255,.1);
+}
+h1{text-align:center;font-size:26px;margin-bottom:16px}
+.sub{text-align:center;opacity:.5;font-size:13px;margin-bottom:20px}
+
+.main-area{display:flex;gap:24px;align-items:flex-start}
+@media(max-width:640px){.main-area{flex-direction:column;align-items:center}}
+
+/* 预览区 */
+.preview-wrap{
+flex-shrink:0;width:280px;text-align:center;
+}
+.preview-wrap canvas{
+width:240px;height:240px;border-radius:16px;
+background:rgba(255,255,255,.05);
+margin-bottom:8px;
+}
+.char-name{font-size:18px;font-weight:600;min-height:28px}
+.char-name-input{
+background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
+border-radius:10px;padding:8px 14px;color:#fff;font-size:16px;
+width:200px;text-align:center;font-family:inherit;outline:none;
+}
+.char-name-input::placeholder{color:rgba(255,255,255,.3)}
+.char-name-input:focus{border-color:rgba(100,255,150,.4)}
+
+/* 选项区 */
+.options{flex:1}
+.option-group{margin-bottom:12px}
+.option-group label{display:block;font-size:13px;opacity:.7;margin-bottom:6px;font-weight:600}
+.color-grid{display:flex;gap:5px;flex-wrap:wrap}
+.color-swatch{
+width:28px;height:28px;border-radius:50%;cursor:pointer;
+border:2px solid transparent;transition:.15s
+}
+.color-swatch:hover{transform:scale(1.15)}
+.color-swatch.active{border-color:#fff;box-shadow:0 0 8px rgba(255,255,255,.3)}
+
+.style-grid{display:flex;gap:5px;flex-wrap:wrap}
+.style-option{
+padding:4px 12px;border-radius:10px;cursor:pointer;font-size:13px;
+background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);
+color:rgba(255,255,255,.7);transition:.15s
+}
+.style-option:hover{background:rgba(255,255,255,.12)}
+.style-option.active{background:rgba(100,255,150,.15);border-color:rgba(100,255,150,.4);color:#fff}
+
+.start-btn{
+display:block;width:100%;margin-top:16px;padding:12px;
+border:none;border-radius:14px;font-size:18px;font-weight:600;cursor:pointer;
+background:linear-gradient(135deg,#4caf50,#8bc34a);color:#fff;
+transition:.2s;font-family:inherit;
+}
+.start-btn:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(76,175,80,.3)}
+.start-btn:active{transform:translateY(0)}
+
+.back-link{display:block;text-align:center;margin-top:12px;color:rgba(255,255,255,.3);font-size:13px;text-decoration:none}
+.back-link:hover{color:rgba(255,255,255,.5)}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🐛 创造你的角色</h1>
+  <p class="sub">自己搭配颜色和风格，给你的探险家取个名字吧！</p>
+
+  <div class="main-area">
+    <!-- 预览 -->
+    <div class="preview-wrap">
+      <canvas id="previewCanvas" width="240" height="240"></canvas>
+      <div id="nameDisplay" class="char-name">小探险家</div>
+      <input type="text" id="nameInput" class="char-name-input" placeholder="取个名字..." maxlength="8">
+    </div>
+
+    <!-- 选项 -->
+    <div class="options" id="options">
+      <div class="option-group">
+        <label>🧢 帽子</label>
+        <div class="style-grid" data-category="hat">
+          <div class="style-option active" data-value="none">无</div>
+          <div class="style-option" data-value="straw">草帽 🧑‍🌾</div>
+          <div class="style-option" data-value="cap">棒球帽 🧢</div>
+          <div class="style-option" data-value="explorer">探险帽 🎩</div>
+        </div>
+      </div>
+      <div class="option-group">
+        <label>👧 发型</label>
+        <div class="style-grid" data-category="hair">
+          <div class="style-option active" data-value="short">短发</div>
+          <div class="style-option" data-value="long">长发 🦋</div>
+          <div class="style-option" data-value="pigtail">辫子 🎀</div>
+          <div class="style-option" data-value="curly">卷发</div>
+        </div>
+      </div>
+      <div class="option-group">
+        <label>👕 上衣颜色</label>
+        <div class="color-grid" data-category="shirt">
+          <div class="color-swatch active" data-color="#4CAF50" style="background:#4CAF50"></div>
+          <div class="color-swatch" data-color="#2196F3" style="background:#2196F3"></div>
+          <div class="color-swatch" data-color="#f44336" style="background:#f44336"></div>
+          <div class="color-swatch" data-color="#FF9800" style="background:#FF9800"></div>
+          <div class="color-swatch" data-color="#9C27B0" style="background:#9C27B0"></div>
+          <div class="color-swatch" data-color="#FFEB3B" style="background:#FFEB3B"></div>
+          <div class="color-swatch" data-color="#795548" style="background:#795548"></div>
+          <div class="color-swatch" data-color="#607D8B" style="background:#607D8B"></div>
+          <div class="color-swatch" data-color="#E91E63" style="background:#E91E63"></div>
+          <div class="color-swatch" data-color="#00BCD4" style="background:#00BCD4"></div>
+          <div class="color-swatch" data-color="#FF5722" style="background:#FF5722"></div>
+          <div class="color-swatch" data-color="#8BC34A" style="background:#8BC34A"></div>
+        </div>
+      </div>
+      <div class="option-group">
+        <label>👖 裤子颜色</label>
+        <div class="color-grid" data-category="pants">
+          <div class="color-swatch active" data-color="#37474F" style="background:#37474F"></div>
+          <div class="color-swatch" data-color="#1565C0" style="background:#1565C0"></div>
+          <div class="color-swatch" data-color="#2E7D32" style="background:#2E7D32"></div>
+          <div class="color-swatch" data-color="#795548" style="background:#795548"></div>
+          <div class="color-swatch" data-color="#F44336" style="background:#F44336"></div>
+          <div class="color-swatch" data-color="#FF8F00" style="background:#FF8F00"></div>
+          <div class="color-swatch" data-color="#5D4037" style="background:#5D4037"></div>
+          <div class="color-swatch" data-color="#455A64" style="background:#455A64"></div>
+        </div>
+      </div>
+      <div class="option-group">
+        <label>👟 鞋子颜色</label>
+        <div class="color-grid" data-category="shoes">
+          <div class="color-swatch active" data-color="#212121" style="background:#212121"></div>
+          <div class="color-swatch" data-color="#FFFFFF" style="background:#FFFFFF;border-color:rgba(255,255,255,.2)"></div>
+          <div class="color-swatch" data-color="#F44336" style="background:#F44336"></div>
+          <div class="color-swatch" data-color="#2196F3" style="background:#2196F3"></div>
+          <div class="color-swatch" data-color="#4CAF50" style="background:#4CAF50"></div>
+          <div class="color-swatch" data-color="#FF9800" style="background:#FF9800"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button class="start-btn" id="startBtn">🎮 准备好了，出发抓虫！</button>
+  <a href="index.html" class="back-link">← 返回首页</a>
+</div>
+
+<script>
+// ── 角色状态 ──
+const char = {
+  hat: 'none',
+  hair: 'short',
+  shirt: '#4CAF50',
+  pants: '#37474F',
+  shoes: '#212121',
+  name: '',
+};
+
+const pc = document.getElementById('previewCanvas');
+const pctx = pc.getContext('2d');
+
+// ── 帽子绘制函数 ──
+function drawHat(ctx, hatType) {
+  ctx.save();
+  if (hatType === 'straw') {
+    ctx.fillStyle = '#d4a030'; ctx.strokeStyle = '#b8891a'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(0, -52, 34, 8, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(0, -60, 16, 12, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  } else if (hatType === 'cap') {
+    ctx.fillStyle = '#e53935'; ctx.strokeStyle = '#c62828'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(0, -50, 30, 7, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(0, -58, 18, 14, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    // 帽舌
+    ctx.fillStyle = '#c62828';
+    ctx.beginPath(); ctx.ellipse(28, -52, 14, 5, -0.3, 0, Math.PI * 2); ctx.fill();
+  } else if (hatType === 'explorer') {
+    ctx.fillStyle = '#6d8a4a'; ctx.strokeStyle = '#5a703a'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(0, -50, 32, 7, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(0, -56, 14, 10, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+// ── 发型绘制 ──
+function drawHair(ctx, hairType) {
+  ctx.save();
+  ctx.fillStyle = '#4a2a0a';
+  if (hairType === 'short') {
+    ctx.beginPath();
+    ctx.arc(0, -26, 16, Math.PI, 0); ctx.fill();
+  } else if (hairType === 'long') {
+    ctx.beginPath(); ctx.arc(0, -26, 17, Math.PI, 0); ctx.fill();
+    ctx.fillRect(-16, -26, 6, 24); ctx.fillRect(10, -26, 6, 24);
+  } else if (hairType === 'pigtail') {
+    ctx.beginPath(); ctx.arc(0, -26, 17, Math.PI, 0); ctx.fill();
+    ctx.fillRect(-18, -20, 6, 18); ctx.fillRect(12, -20, 6, 18);
+    ctx.fillStyle = '#e91e63';
+    ctx.beginPath(); ctx.arc(-15, -4, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(15, -4, 4, 0, Math.PI * 2); ctx.fill();
+  } else if (hairType === 'curly') {
+    for (let i = -14; i <= 14; i += 6) {
+      ctx.beginPath();
+      ctx.arc(i, -32 - Math.abs(i) * 0.3, 6, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+// ── 完整绘制 ──
+function renderPreview() {
+  const ctx = pctx;
+  const cx = 120, cy = 140;
+  ctx.clearRect(0, 0, 240, 240);
+  
+  // 背景光晕
+  const grd = ctx.createRadialGradient(120, 120, 0, 120, 120, 120);
+  grd.addColorStop(0, 'rgba(100,200,100,0.08)'); grd.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = grd; ctx.fillRect(0, 0, 240, 240);
+  
+  ctx.save(); ctx.translate(cx, cy);
+  
+  // 影子
+  ctx.fillStyle = 'rgba(0,0,0,0.12)';
+  ctx.beginPath(); ctx.ellipse(0, 50, 36, 6, 0, 0, Math.PI * 2); ctx.fill();
+  
+  // 鞋子
+  ctx.fillStyle = char.shoes;
+  ctx.beginPath(); ctx.ellipse(-12, 48, 12, 5, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(12, 48, 12, 5, 0, 0, Math.PI * 2); ctx.fill();
+  
+  // 裤子
+  ctx.fillStyle = char.pants;
+  ctx.fillRect(-16, 14, 32, 34);
+  ctx.fillRect(-16, 14, 14, 34); ctx.fillRect(2, 14, 14, 34);
+  
+  // 身体 (上衣)
+  ctx.fillStyle = char.shirt;
+  ctx.beginPath();
+  ctx.moveTo(0, -8); ctx.lineTo(-22, 14); ctx.lineTo(-20, 16); ctx.lineTo(20, 16); ctx.lineTo(22, 14); ctx.closePath();
+  ctx.fill();
+  // 衣领
+  ctx.fillStyle = 'rgba(0,0,0,0.08)';
+  ctx.beginPath(); ctx.moveTo(-4, -6); ctx.lineTo(0, 4); ctx.lineTo(4, -6); ctx.closePath(); ctx.fill();
+  
+  // 手臂
+  ctx.fillStyle = '#f0d8b8';
+  ctx.fillRect(-28, 6, 10, 22);
+  ctx.fillRect(18, 6, 10, 22);
+  
+  // 头
+  ctx.fillStyle = '#f0d8b8';
+  ctx.beginPath(); ctx.arc(0, -26, 20, 0, Math.PI * 2); ctx.fill();
+  
+  // 头发 (在帽子之前)
+  drawHair(ctx, char.hair);
+  
+  // 帽子
+  drawHat(ctx, char.hat);
+  
+  // 眼睛
+  ctx.fillStyle = '#333';
+  ctx.beginPath(); ctx.arc(-8, -28, 2.5, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(8, -28, 2.5, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(-7, -30, 1, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(9, -30, 1, 0, Math.PI * 2); ctx.fill();
+  
+  // 嘴 (微笑)
+  ctx.strokeStyle = '#c08060'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(0, -18, 6, 0.1, Math.PI - 0.1); ctx.stroke();
+  
+  // 抄子 (装饰)
+  ctx.strokeStyle = '#8B4513'; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.moveTo(32, 14); ctx.lineTo(52, -6); ctx.stroke();
+  ctx.strokeStyle = 'rgba(200,200,200,0.3)'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(56, -10, 9, 0, Math.PI * 2); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,0.04)'; ctx.fill();
+  
+  ctx.restore();
+}
+
+// ── 选项事件绑定 ──
+document.querySelectorAll('.style-option').forEach(el => {
+  el.addEventListener('click', () => {
+    const cat = el.parentElement.dataset.category;
+    el.parentElement.querySelectorAll('.style-option').forEach(s => s.classList.remove('active'));
+    el.classList.add('active');
+    char[cat] = el.dataset.value;
+    renderPreview();
+  });
+});
+
+document.querySelectorAll('.color-swatch').forEach(el => {
+  el.addEventListener('click', () => {
+    const cat = el.parentElement.dataset.category;
+    el.parentElement.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+    el.classList.add('active');
+    char[cat] = el.dataset.color;
+    renderPreview();
+  });
+});
+
+// ── 名字 ──
+const nameInput = document.getElementById('nameInput');
+const nameDisplay = document.getElementById('nameDisplay');
+nameInput.addEventListener('input', () => {
+  char.name = nameInput.value.trim() || '小探险家';
+  nameDisplay.textContent = char.name;
+});
+
+// ── 开始游戏 ──
+document.getElementById('startBtn').addEventListener('click', () => {
+  const name = nameInput.value.trim() || '小探险家';
+  char.name = name;
+  // 保存角色数据
+  localStorage.setItem('selectedChar', JSON.stringify(char));
+  localStorage.setItem('selectedCharName', name);
+  // 跳转游戏
+  window.location.href = 'game.html';
+});
+
+// 初始化
+renderPreview();
+nameDisplay.textContent = '小探险家';
+</script>
+</body>
+</html>
