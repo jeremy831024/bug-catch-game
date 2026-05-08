@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>🐛 抓虫大冒险 - 精灵展示</title>
+<style>
+body{background:#1a2a1a;color:#fff;font-family:sans-serif;padding:20px;text-align:center}
+.grid{display:flex;flex-wrap:wrap;gap:20px;justify-content:center;margin:20px 0}
+.card{background:rgba(255,255,255,.08);border-radius:16px;padding:16px;width:160px}
+.card canvas{border-radius:8px;background:rgba(255,255,255,.04)}
+.card .name{font-size:14px;margin-top:6px}
+.card .sub{font-size:11px;opacity:.5}
+.terrain-grid{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:20px 0}
+.terrain-grid canvas{border-radius:4px;width:64px;height:64px}
+</style>
+</head>
+<body>
+<h1>🐛 抓虫大冒险 - 精灵预览</h1>
+<p style="opacity:.5">所有角色和昆虫都是用 Canvas 直接绘制的</p>
+
+<h2>🦗 昆虫</h2>
+<div class="grid" id="bugGrid"></div>
+
+<h2>🧑 小朋友</h2>
+<canvas id="playerCanvas" width="120" height="140" style="background:rgba(255,255,255,.04);border-radius:12px"></canvas>
+
+<h2>🗺️ 地形</h2>
+<div class="terrain-grid" id="terrainGrid"></div>
+
+<script>
+// 重绘所有昆虫精灵 (直接copy自game.js的drawRealBug)
+function drawAllBugs() {
+  const bugs = [
+    {id:'hopper',name:'蚂蚱',color:'#5a8a30',desc:'会用后腿跳跃'},
+    {id:'mantis',name:'螳螂',color:'#4a7a30',desc:'伏击猎手'},
+    {id:'beetle',name:'独角仙',color:'#4a2a10',desc:'耐力超强'},
+    {id:'butterfly',name:'蝴蝶',color:'#ff88d0',desc:'飞行飘忽'},
+    {id:'cicada',name:'知了',color:'#3a4a2a',desc:'夏日鸣叫'},
+    {id:'spider',name:'蜘蛛',color:'#2a2a2a',desc:'⚠️有毒'},
+    {id:'dung',name:'屎壳郎',color:'#2a1a0a',desc:'💩陷阱'},
+  ];
+  
+  const grid = document.getElementById('bugGrid');
+  
+  for (const b of bugs) {
+    const card = document.createElement('div');
+    card.className = 'card';
+    const c = document.createElement('canvas');
+    c.width = 120; c.height = 120;
+    const ctx = c.getContext('2d');
+    
+    // 绘制昆虫
+    const sz = 30;
+    const cx = 60, cy = 55;
+    ctx.save(); ctx.translate(cx, cy);
+    
+    // 投影
+    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+    ctx.beginPath(); ctx.ellipse(0, sz*0.6, sz*0.35, sz*0.12, 0, 0, 7); ctx.fill();
+    
+    if (b.id === 'hopper') {
+      ctx.fillStyle = '#5a8a30';
+      ctx.beginPath(); ctx.ellipse(0, 0, sz*0.35, sz*0.2, 0, 0, 7); ctx.fill();
+      ctx.fillStyle = '#6a9a30';
+      ctx.beginPath(); ctx.arc(sz*0.25, -sz*0.05, sz*0.15, 0, 7); ctx.fill();
+      ctx.fillStyle = '#222';
+      ctx.beginPath(); ctx.arc(sz*0.3, -sz*0.08, 1.5, 0, 7); ctx.arc(sz*0.3, sz*0.02, 1.5, 0, 7); ctx.fill();
+      ctx.strokeStyle = '#4a6a20'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(-sz*0.1, sz*0.05); ctx.lineTo(-sz*0.2, sz*0.2); ctx.lineTo(-sz*0.15, sz*0.3); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-sz*0.1, -sz*0.05); ctx.lineTo(-sz*0.2, -sz*0.2); ctx.lineTo(-sz*0.15, -sz*0.3); ctx.stroke();
+    } else if (b.id === 'mantis') {
+      ctx.fillStyle = '#4a7a30';
+      ctx.beginPath(); ctx.moveTo(-sz*0.45, 0); ctx.lineTo(0, -sz*0.08); ctx.lineTo(sz*0.45, -sz*0.02);
+      ctx.lineTo(sz*0.45, sz*0.02); ctx.lineTo(0, sz*0.08); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#5a8a30';
+      ctx.beginPath(); ctx.moveTo(sz*0.3, -sz*0.12); ctx.lineTo(sz*0.55, 0); ctx.lineTo(sz*0.3, sz*0.12); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#f22';
+      ctx.beginPath(); ctx.arc(sz*0.45, -sz*0.03, 1.5, 0, 7); ctx.arc(sz*0.45, sz*0.03, 1.5, 0, 7); ctx.fill();
+    } else if (b.id === 'beetle') {
+      ctx.fillStyle = '#4a2a10';
+      ctx.beginPath(); ctx.ellipse(0, 0, sz*0.45, sz*0.25, 0, 0, 7); ctx.fill();
+      ctx.fillStyle = '#3a2a10';
+      ctx.beginPath(); ctx.arc(sz*0.3, 0, sz*0.15, 0, 7); ctx.fill();
+      ctx.strokeStyle = '#2a1a00'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(sz*0.35, -sz*0.05); ctx.lineTo(sz*0.6, -sz*0.15); ctx.lineTo(sz*0.65, -sz*0.08); ctx.stroke();
+    } else if (b.id === 'butterfly') {
+      ctx.fillStyle = '#ff88d0';
+      ctx.beginPath(); ctx.ellipse(-sz*0.2, -sz*0.1, sz*0.35, sz*0.2, -0.3, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(sz*0.2, -sz*0.1, sz*0.35, sz*0.2, 0.3, 0, 7); ctx.fill();
+      ctx.fillStyle = '#2a2a2a';
+      ctx.beginPath(); ctx.ellipse(0, 0, sz*0.06, sz*0.18, 0, 0, 7); ctx.fill();
+    } else if (b.id === 'cicada') {
+      ctx.fillStyle = '#3a4a2a';
+      ctx.beginPath(); ctx.ellipse(0, 0, sz*0.25, sz*0.18, 0, 0, 7); ctx.fill();
+      ctx.fillStyle = 'rgba(180,200,150,0.25)';
+      ctx.beginPath(); ctx.ellipse(-sz*0.15, -sz*0.1, sz*0.15, sz*0.08, -0.2, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(sz*0.15, -sz*0.1, sz*0.15, sz*0.08, 0.2, 0, 7); ctx.fill();
+      ctx.fillStyle = '#c33';
+      ctx.beginPath(); ctx.arc(-sz*0.08, -0.02, 1.2, 0, 7); ctx.arc(sz*0.08, -0.02, 1.2, 0, 7); ctx.fill();
+    } else if (b.id === 'spider') {
+      ctx.strokeStyle = 'rgba(200,200,200,0.1)'; ctx.lineWidth = 0.5;
+      for(let i=0;i<8;i++){let a=i*0.785;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(Math.cos(a)*sz*1.2,Math.sin(a)*sz*1.2);ctx.stroke()}
+      ctx.fillStyle = '#2a2a2a';
+      ctx.beginPath(); ctx.ellipse(0, 0, sz*0.22, sz*0.18, 0, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(0, -sz*0.15, sz*0.16, sz*0.12, 0, 0, 7); ctx.fill();
+      ctx.fillStyle = '#f44';
+      ctx.beginPath(); ctx.arc(-sz*0.08, -sz*0.18, 1, 0, 7); ctx.arc(sz*0.08, -sz*0.18, 1, 0, 7); ctx.fill();
+    } else if (b.id === 'dung') {
+      ctx.fillStyle = '#5a3a1a';
+      ctx.beginPath(); ctx.arc(sz*0.25, sz*0.15, sz*0.3, 0, 7); ctx.fill();
+      ctx.fillStyle = '#2a1a0a';
+      ctx.beginPath(); ctx.ellipse(0, 0, sz*0.3, sz*0.18, 0, 0, 7); ctx.fill();
+      ctx.fillStyle = '#1a0a00';
+      ctx.beginPath(); ctx.arc(-sz*0.18, -sz*0.03, sz*0.14, 0, 7); ctx.fill();
+    }
+    ctx.restore();
+    
+    card.appendChild(c);
+    const nameEl = document.createElement('div'); nameEl.className = 'name'; nameEl.textContent = b.name;
+    const subEl = document.createElement('div'); subEl.className = 'sub'; subEl.textContent = b.desc;
+    card.appendChild(nameEl);
+    card.appendChild(subEl);
+    grid.appendChild(card);
+  }
+}
+
+// 画小朋友
+function drawPlayer() {
+  const c = document.getElementById('playerCanvas');
+  const ctx = c.getContext('2d');
+  const cx = 60, cy = 75;
+  
+  ctx.save(); ctx.translate(cx, cy);
+  ctx.fillStyle = 'rgba(0,0,0,0.12)';
+  ctx.beginPath(); ctx.ellipse(0, 30, 22, 5, 0, 0, 7); ctx.fill();
+  
+  ctx.fillStyle = '#333';
+  ctx.beginPath(); ctx.ellipse(-11, 28, 9, 4, 0, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(11, 28, 9, 4, 0, 0, 7); ctx.fill();
+  
+  ctx.fillStyle = '#455A64';
+  ctx.fillRect(-14, 6, 28, 22);
+  
+  ctx.fillStyle = '#4CAF50';
+  ctx.beginPath();
+  ctx.moveTo(0, -6); ctx.lineTo(-18, 8); ctx.lineTo(18, 8); ctx.closePath();
+  ctx.fill();
+  
+  ctx.fillStyle = '#f0d8b8';
+  ctx.fillRect(-22, 2, 8, 16);
+  ctx.fillRect(14, 2, 8, 16);
+  
+  ctx.fillStyle = '#f0d8b8';
+  ctx.beginPath(); ctx.arc(0, -16, 16, 0, 7); ctx.fill();
+  
+  ctx.fillStyle = '#4a2a0a';
+  ctx.beginPath(); ctx.arc(0, -18, 14, 3.14, 0); ctx.fill();
+  
+  ctx.fillStyle = '#d4a030';
+  ctx.beginPath(); ctx.ellipse(0, -28, 20, 5, 0, 0, 7); ctx.fill();
+  ctx.fillRect(-12, -34, 24, 7);
+  
+  ctx.fillStyle = '#333';
+  ctx.beginPath(); ctx.arc(-5, -17, 2, 0, 7); ctx.arc(5, -17, 2, 0, 7); ctx.fill();
+  
+  ctx.strokeStyle = '#c08060'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.arc(0, -11, 4, 0.1, 2.8); ctx.stroke();
+  
+  // 抄子
+  ctx.strokeStyle = '#8B4513'; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.moveTo(22, 8); ctx.lineTo(42, -4); ctx.stroke();
+  ctx.strokeStyle = 'rgba(200,200,200,0.3)'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(46, -6, 8, 0, 7); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,0.04)'; ctx.fill();
+  
+  ctx.restore();
+}
+
+drawAllBugs();
+drawPlayer();
+</script>
+</body>
+</html>
