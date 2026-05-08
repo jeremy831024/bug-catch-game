@@ -98,6 +98,7 @@ const VIEW_H = 640;
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
+canvas.addEventListener("keydown", (e) => { e.preventDefault(); e.stopPropagation(); }, { capture: true });
 
 
 // ═══════════════════════════════════════
@@ -1716,14 +1717,14 @@ function ensurePlayer() {
 let player = ensurePlayer();
 let lastFrame = performance.now();
 
-document.addEventListener("keydown", (event) => {
+window.addEventListener("keydown", (event) => {
   state.keys[event.code] = true;
-  if (["KeyE", "Space", "KeyQ", "KeyR", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.code)) event.preventDefault();
+  if (event.code.startsWith("Arrow") || ["KeyE", "Space", "KeyQ", "KeyR"].includes(event.code)) event.preventDefault();
   initAudio();
   if (event.code === "KeyE" || event.code === "Space") catchWithNet();
   if (event.code === "KeyQ") shovelHole();
   if (event.code === "KeyR") window.location.href = "index.html";
-});
+}, { capture: true });
 
 document.addEventListener("keyup", (event) => {
   state.keys[event.code] = false;
