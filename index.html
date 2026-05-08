@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🐛 抓虫大冒险</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: #1a1a2e; display:flex; align-items:center; justify-content:center;
+    min-height:100vh; font-family: -apple-system, "PingFang SC", system-ui, sans-serif;
+    overflow:hidden;
+  }
+  .game-wrapper {
+    position:relative;
+    background: rgba(255,255,255,0.05); backdrop-filter:blur(12px);
+    border-radius: 20px; padding:12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  }
+  canvas {
+    display:block; border-radius: 12px;
+    background: #4a7a3a;
+    cursor: crosshair;
+  }
+  #gameCanvas {
+    width: 960px; height: 640px;
+  }
+
+  .hud {
+    display:flex; align-items:center; gap:16px;
+    padding:8px 12px; color:#fff; font-size:14px;
+    background: rgba(0,0,0,0.3); backdrop-filter:blur(8px);
+    border-radius: 12px; margin-top:8px;
+  }
+  .hud-item { display:flex; align-items:center; gap:6px; }
+  .hud-bar {
+    width:120px; height:8px; background:rgba(255,255,255,0.15); border-radius:4px; overflow:hidden;
+  }
+  .hud-fill { height:100%; border-radius:4px; transition:width 0.3s; }
+  .hud-stamina .hud-fill { background: linear-gradient(90deg, #f5576c, #ffd700); }
+  .hud-poison .hud-fill { background: #9b59b6; }
+  .hud-score { font-size:18px; font-weight:700; margin-left:auto; }
+  .hud-status { padding:2px 8px; border-radius:8px; font-size:12px; }
+  .status-normal { background:rgba(100,255,100,0.2); color:#4caf50; }
+  .status-poison { background:rgba(200,100,255,0.2); color:#ce93d8; }
+
+  .controls-help {
+    display:flex; gap:16px; margin-top:6px; font-size:11px; color:rgba(255,255,255,0.4);
+  }
+  .controls-help kbd {
+    background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:4px;
+    font-family:inherit; font-size:11px;
+  }
+
+  @media (max-width: 1000px) {
+    #gameCanvas { width:100%; height:auto; aspect-ratio:960/640; }
+  }
+</style>
+</head>
+<body>
+
+<div class="game-wrapper">
+  <canvas id="gameCanvas" width="960" height="640"></canvas>
+
+  <div class="hud" id="hud">
+    <div class="hud-item">
+      ⭐ <span id="scoreDisplay" class="hud-score" style="margin:0;font-size:16px;">0</span>
+    </div>
+    <div class="hud-item">
+      💪 <div class="hud-bar hud-stamina"><div class="hud-fill" id="staminaBar" style="width:100%"></div></div>
+      <span id="staminaText" style="font-size:12px;opacity:0.7;">100</span>
+    </div>
+    <div class="hud-item" id="poisonArea" style="display:none;">
+      🟡 <div class="hud-bar hud-poison"><div class="hud-fill" id="poisonBar" style="width:100%"></div></div>
+    </div>
+    <span id="statusBadge" class="hud-status status-normal">🟢 正常</span>
+    <span id="bugCount" style="font-size:12px;opacity:0.5;">🐛 0只</span>
+  </div>
+
+  <div class="controls-help">
+    <span><kbd>W A S D</kbd> / <kbd>↑ ← ↓ →</kbd> 移动</span>
+    <span><kbd>E</kbd> / <kbd>Space</kbd> 抄子抓虫</span>
+    <span><kbd>Q</kbd> 铲子挖洞</span>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// 🐛 抓虫大冒险 — 游戏引擎
+// ═══════════════════════════════════════
+
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const W = 960, H = 640;
+const TILE = 32;
+const COLS = 30, ROWS = 20; // 960/32=30, 640/32=20
+
+// ── DOM ──
+const scoreDisp = document.getElementById('scoreDisplay');
+const staminaBar = document.getElementById('staminaBar');
+const staminaText = document.getElementById('staminaText');
+const poisonArea = document.getElementById('poisonArea');
+const poisonBar = document.getElementById('poisonBar');
+const statusBadge = document.getElementById('statusBadge');
+const bugCount = document.getElementById('bugCount');
+
+// ═══════════════════════════════════════
+// 游戏状态
+// ═══════════════════════════════════════
+
+const game = {
+  state: 'playing', // playing | poisoned | win | lose
+  score: 0,
+  time: 0,
+  keys: {},
+};
+
+// ═══════════════════════════════════════
+// 地形系统
+// ═══════════════════════════════════════
+
+const TERRAIN = {
+  GRASS: 0,
+  MOUNTAIN: 1,
+  POND: 2,
+  HOLE: 3,
+};
+
+const terrainColors = {
+  [TERRAIN.GRASS]: ['#5a9a4a', '#6aaa5a', '#4a8a3a'],
+  [TERRAIN.MOUNTAIN]: ['#8a7a6a', '#9a8a7a', '#7a6a5a'],
+  [TERRAIN.POND]: ['#4a8aba', '#5a9aca', '#3a7aaa'],
+};
+
+const terrainSpeed = {
+  [TERRAIN.GRASS]: 1.0,
+  [TERRAIN.MOUNTAIN]: 0.6,
+  [TERRAIN.POND]: 0,
+};
+
+let map = [];
+
+function initMap() {
+  map = [];
+  for (let y = 0; y < ROWS; y++) {
+    map[y] = [];
+    for (let x = 0; x < COLS; x++) {
+      map[y][x] = TERRAIN.GRASS;
+    }
+  }
+
+  // 山路 (对角线形)
+  for (let i = 0; i < 6; i++) {
+    const startX = 10 + Math.floor(Math.random() * 8);
+    const startY = Math.floor(Math.random() * 12);
+    for (let j = 0; j < 8; j++) {
+      const x = startX + j + Math.floor(Math.random() * 2);
+      const y = startY + Math.floor(j * 0.8) + Math.floor(Math.random() * 2);
+      if (x < COLS && y < ROWS) map[y][x] = TERRAIN.MOUNTAIN;
+    }
+  }
+  // 第二条山路
+  for (let i = 0; i < 4; i++) {
+    const startX = 2 + Math.floor(Math.random() * 5);
+    const startY = 8 + Math.floor(Math.random() * 5);
+    for (let j = 0; j < 6; j++) {
+      const x = startX + Math.floor(j * 0.7) + Math.floor(Math.random() * 2);
+      const y = startY + j + Math.floor(Math.random() * 2);
+      if (x < COLS && y < ROWS) map[y][x] = TERRAIN.MOUNTAIN;
+    }
+  }
+
+  // 池塘
+  const pondX = 20 + Math.floor(Math.random() * 4);
+  const pondY = 4 + Math.floor(Math.random() * 4);
+  for (let dy = -1; dy <= 1; dy++) {
+    for (let dx = -1; dx <= 2; dx++) {
+      const x = pondX + dx;
+      const y = pondY + dy;
+      if (x >= 0 && x < COLS && y >= 0 && y < ROWS) map[y][x] = TERRAIN.POND;
+    }
+  }
+}
+
+function getTerrainAt(x, y) {
+  const tx = Math.floor(x / TILE);
+  const ty = Math.floor(y / TILE);
+  if (tx < 0 || tx >= COLS || ty < 0 || ty >= ROWS) return TERRAIN.MOUNTAIN;
+  return map[ty][tx];
+}
+
+function getSpeedMultiplier(tx, ty) {
+  if (tx < 0 || tx >= COLS || ty < 0 || ty >= ROWS) return 0;
+  return terrainSpeed[map[ty][tx]] || 0;
+}
+
+// ═══════════════════════════════════════
+// 玩家
+// ═══════════════════════════════════════
+
+const player = {
+  x: 3 * TILE + 16,
+  y: 3 * TILE + 16,
+  size: 20,
+  speed: 120, // px/s base
+  stamina: 100,
+  maxStamina: 100,
+  poisoned: false,
+  poisonTimer: 0,
+  poisonDuration: 8, // seconds
+  direction: 0, // 0=down, 1=left, 2=up, 3=right
+  moving: false,
+  tools: {
+    net: true,
+    shovel: true,
+  },
+  bugsCaught: [],
+  frame: 0,
+};
+
+function useNet() {
+  if (player.poisoned) return;
+  // 检查面前一格是否有虫子
+  const nx = player.x + Math.cos(player.direction) * TILE;
+  const ny = player.y + Math.sin(player.direction) * TILE;
+
+  for (let i = bugs.length - 1; i >= 0; i--) {
+    const bug = bugs[i];
+    const dist = Math.sqrt((bug.x - nx) ** 2 + (bug.y - ny) ** 2);
+    if (dist < TILE * 0.7) {
+      // 抓到！
+      const isPoison = bug.poisonous;
+      const points = bug.points;
+
+      game.score += points;
+      player.bugsCaught.push({ type: bug.type, points: bug.points });
+
+      bugs.splice(i, 1);
+
+      if (isPoison) {
+        enterPoison();
+      }
+
+      // 生成分数弹出
+      spawnFloatingText(nx, ny, (points > 0 ? '+' : '') + points, points > 0 ? '#ffd700' : '#ff4444');
+      return;
+    }
+  }
+  // 没抓到
+  spawnFloatingText(player.x, player.y - 10, '😅 没抓到', 'rgba(255,255,255,0.5)');
+}
+
+function useShovel() {
+  if (player.poisoned) return;
+  // 检查站在洞口上
+  const tx = Math.floor(player.x / TILE);
+  const ty = Math.floor(player.y / TILE);
+
+  if (map[ty] && map[ty][tx] === TERRAIN.HOLE) {
+    // 检查洞里有没有虫子
+    let bugInHole = null;
+    for (let i = bugs.length - 1; i >= 0; i--) {
+      if (bugs[i].inHole && bugs[i].holeX === tx && bugs[i].holeY === ty) {
+        bugInHole = bugs[i];
+        break;
+      }
+    }
+
+    if (bugInHole) {
+      // 挖到有虫的洞
+      const isPoison = bugInHole.poisonous;
+      game.score += 30 + bugInHole.points;
+      player.bugsCaught.push({ type: bugInHole.type + '(挖洞)', points: bugInHole.points + 30 });
+      bugs.splice(bugs.indexOf(bugInHole), 1);
+      player.stamina = Math.max(0, player.stamina - 10);
+      map[ty][tx] = TERRAIN.GRASS;
+      spawnFloatingText(player.x, player.y - 20, '🎉 +' + (30 + bugInHole.points), '#ffd700');
+      if (isPoison) enterPoison();
+    } else {
+      // 挖空洞
+      player.stamina = Math.max(0, player.stamina - 25);
+      map[ty][tx] = TERRAIN.GRASS;
+      spawnFloatingText(player.x, player.y - 20, '😰 空的... -体力', '#ff8c00');
+    }
+  } else {
+    spawnFloatingText(player.x, player.y - 10, '🔧 这里没有洞', 'rgba(255,255,255,0.5)');
+  }
+}
+
+function enterPoison() {
+  player.poisoned = true;
+  player.poisonTimer = player.poisonDuration;
+  statusBadge.textContent = '🟡 中毒';
+  statusBadge.className = 'hud-status status-poison';
+  poisonArea.style.display = 'flex';
+}
+
+// ═══════════════════════════════════════
+// 虫子系统
+// ═══════════════════════════════════════
+
+const BUG_TYPES = [
+  { type: 'grasshopper', name: '蚂蚱', emoji: '🦗', speed: 40, fly: true, stamina: 30, points: 10, poisonous: false, size: 10, color: '#7ab648' },
+  { type: 'mantis', name: '螳螂', emoji: '🦟', speed: 35, fly: true, stamina: 25, points: 15, poisonous: false, size: 12, color: '#6a9a3a' },
+  { type: 'beetle', name: '独角仙', emoji: '🪲', speed: 20, fly: true, stamina: 60, points: 50, poisonous: false, size: 14, color: '#5a3a1a' },
+  { type: 'butterfly', name: '蝴蝶', emoji: '🦋', speed: 55, fly: true, stamina: 20, points: 30, poisonous: false, size: 10, color: '#e8a0d0' },
+  { type: 'cicada', name: '知了', emoji: '🦗', speed: 25, fly: false, stamina: 0, points: 20, poisonous: false, size: 11, color: '#3a5a2a' },
+  { type: 'spider', name: '蜘蛛', emoji: '🕷️', speed: 30, fly: false, stamina: 0, points: 25, poisonous: true, size: 12, color: '#2a2a2a' },
+  { type: 'dung', name: '屎壳郎', emoji: '💩', speed: 15, fly: false, stamina: 0, points: -10, poisonous: true, size: 13, color: '#4a3a2a' },
+];
+
+let bugs = [];
+let bugSpawnTimer = 0;
+const MAX_BUGS = 12;
+
+function spawnBug() {
+  if (bugs.length >= MAX_BUGS) return;
+  const type = BUG_TYPES[Math.floor(Math.random() * BUG_TYPES.length)];
+
+  // 找草地上随机位置
+  let x, y, attempts = 0;
+  do {
+    x = Math.random() * (W - 40) + 20;
+    y = Math.random() * (H - 40) + 20;
+    attempts++;
+  } while (getTerrainAt(x, y) !== TERRAIN.GRASS && attempts < 50);
+
+  const bug = {
+    ...type,
+    x, y,
+    vx: 0, vy: 0,
+    dir: Math.random() * Math.PI * 2,
+    speed: type.speed + Math.random() * 10,
+    flying: false,
+    flyTimer: 0,
+    stamina: type.stamina,
+    maxStamina: type.stamina,
+    inHole: false,
+    holeX: 0, holeY: 0,
+    holeTimer: 0,
+    moveCounter: Math.random() * 100,
+    scared: false,
+  };
+  bugs.push(bug);
+}
+
+function spawnFloatingText(x, y, text, color) {
+  floatingTexts.push({ x, y, text, color, life: 1.5 });
+}
+
+let floatingTexts = [];
+
+// ═══════════════════════════════════════
+// 更新逻辑
+// ═══════════════════════════════════════
+
+function update(dt) {
+  game.time += dt;
+  if (player.poisoned) {
+    player.poisonTimer -= dt;
+    game.score -= 5 * dt;
+    if (player.poisonTimer <= 0) {
+      player.poisoned = false;
+      statusBadge.textContent = '🟢 正常';
+      statusBadge.className = 'hud-status status-normal';
+      poisonArea.style.display = 'none';
+    }
+  }
+
+  // ── 玩家移动 ──
+  let dx = 0, dy = 0;
+  if (game.keys['w'] || game.keys['arrowup']) dy = -1;
+  if (game.keys['s'] || game.keys['arrowdown']) dy = 1;
+  if (game.keys['a'] || game.keys['arrowleft']) dx = -1;
+  if (game.keys['d'] || game.keys['arrowright']) dx = 1;
+
+  player.moving = (dx !== 0 || dy !== 0) && !player.poisoned;
+
+  if (player.moving) {
+    // 方向
+    if (dx !== 0 || dy !== 0) {
+      player.direction = Math.atan2(dy, dx);
+    }
+
+    // 体力对速度的影响
+    const staminaRatio = player.stamina / player.maxStamina;
+    const speedMult = staminaRatio > 0.7 ? 1.0 : staminaRatio > 0.4 ? 0.8 : 0.6;
+
+    // 地形影响
+    const tx = Math.floor(player.x / TILE);
+    const ty = Math.floor(player.y / TILE);
+    const terrainMult = getSpeedMultiplier(tx, ty);
+
+    const moveSpeed = player.speed * speedMult * terrainMult * dt;
+
+    let newX = player.x + dx * moveSpeed;
+    let newY = player.y + dy * moveSpeed;
+
+    // 边界
+    newX = Math.max(player.size, Math.min(W - player.size, newX));
+    newY = Math.max(player.size, Math.min(H - player.size, newY));
+
+    // 不能进池塘
+    if (getTerrainAt(newX, newY) !== TERRAIN.POND) {
+      player.x = newX;
+      player.y = newY;
+    }
+
+    // 体力自然恢复
+    player.stamina = Math.min(player.maxStamina, player.stamina + 0.5 * dt);
+    player.frame += dt * 5;
+  } else {
+    // 静止时恢复更快
+    player.stamina = Math.min(player.maxStamina, player.stamina + 2 * dt);
+  }
+
+  // ── 虫子更新 ──
+  for (const bug of bugs) {
+    if (bug.inHole) {
+      bug.holeTimer -= dt;
+      if (bug.holeTimer <= 0) {
+        bug.inHole = false;
+        bug.x = bug.holeX * TILE + TILE / 2;
+        bug.y = bug.holeY * TILE + TILE / 2;
+        bug.stamina = Math.max(0, bug.stamina - 10);
+      }
+      continue;
+    }
+
+    bug.moveCounter += dt;
+
+    // 虫子AI
+    const distToPlayer = Math.sqrt((bug.x - player.x) ** 2 + (bug.y - player.y) ** 2);
+    bug.scared = distToPlayer < 4 * TILE && !player.poisoned;
+
+    if (bug.scared) {
+      // 逃离玩家
+      const awayX = bug.x - player.x;
+      const awayY = bug.y - player.y;
+      const len = Math.sqrt(awayX ** 2 + awayY ** 2) || 1;
+      bug.vx = (awayX / len) * bug.speed * 1.5;
+      bug.vy = (awayY / len) * bug.speed * 1.5;
+    } else {
+      // 随机漫步
+      if (bug.moveCounter > 2 + Math.random() * 3) {
+        bug.dir = Math.random() * Math.PI * 2;
+        bug.moveCounter = 0;
+      }
+      bug.vx = Math.cos(bug.dir) * bug.speed * 0.5;
+      bug.vy = Math.sin(bug.dir) * bug.speed * 0.5;
+    }
+
+    // 飞行逻辑
+    if (bug.fly && bug.stamina > 0 && Math.random() < 0.02) {
+      bug.flying = true;
+    }
+    if (bug.flying) {
+      bug.stamina -= 3 * dt;
+      if (bug.stamina <= 0) {
+        bug.flying = false;
+        bug.stamina = 0;
+      }
+    } else {
+      bug.stamina = Math.min(bug.maxStamina, bug.stamina + 1 * dt);
+    }
+
+    // 移动
+    const speed = bug.flying ? bug.speed * 1.5 : bug.speed;
+    bug.x += (bug.vx || Math.cos(bug.dir) * speed * 0.5) * dt;
+    bug.y += (bug.vy || Math.sin(bug.dir) * speed * 0.5) * dt;
+
+    // 边界反弹
+    if (bug.x < 10 || bug.x > W - 10) bug.vx *= -1;
+    if (bug.y < 10 || bug.y > H - 10) bug.vy *= -1;
+    bug.x = Math.max(5, Math.min(W - 5, bug.x));
+    bug.y = Math.max(5, Math.min(H - 5, bug.y));
+
+    // 不能进池塘
+    if (getTerrainAt(bug.x, bug.y) === TERRAIN.POND) {
+      bug.vx *= -1;
+      bug.vy *= -1;
+    }
+  }
+
+  // ── 虫子生成 ──
+  bugSpawnTimer -= dt;
+  if (bugSpawnTimer <= 0 && bugs.length < MAX_BUGS) {
+    spawnBug();
+    bugSpawnTimer = 1.5 + Math.random() * 3;
+  }
+
+  // ── 浮动文字 ──
+  for (let i = floatingTexts.length - 1; i >= 0; i--) {
+    floatingTexts[i].life -= dt;
+    floatingTexts[i].y -= 30 * dt;
+    if (floatingTexts[i].life <= 0) floatingTexts.splice(i, 1);
+  }
+
+  // ── 更新 HUD ──
+  scoreDisp.textContent = Math.round(game.score);
+  staminaBar.style.width = (player.stamina / player.maxStamina * 100) + '%';
+  staminaText.textContent = Math.round(player.stamina);
+  if (player.poisoned) {
+    poisonBar.style.width = (player.poisonTimer / player.poisonDuration * 100) + '%';
+  }
+  bugCount.textContent = '🐛 ' + bugs.length + '只';
+}
+
+// ═══════════════════════════════════════
+// 渲染
+// ═══════════════════════════════════════
+
+function drawMap() {
+  for (let y = 0; y < ROWS; y++) {
+    for (let x = 0; x < COLS; x++) {
+      const t = map[y][x];
+      const colors = terrainColors[t] || terrainColors[TERRAIN.GRASS];
+      ctx.fillStyle = colors[(x + y) % 3];
+      ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
+
+      // 草地细节
+      if (t === TERRAIN.GRASS && Math.random() < 0.003) {
+        ctx.fillStyle = 'rgba(80,160,60,0.3)';
+        ctx.fillRect(x * TILE + 8, y * TILE + 12, 4, 8);
+      }
+      // 山路石头
+      if (t === TERRAIN.MOUNTAIN) {
+        ctx.fillStyle = 'rgba(120,110,100,0.4)';
+        ctx.beginPath();
+        ctx.arc(x * TILE + 16, y * TILE + 16, 4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      // 池塘波纹
+      if (t === TERRAIN.POND) {
+        ctx.fillStyle = 'rgba(100,180,220,0.15)';
+        ctx.beginPath();
+        ctx.arc(x * TILE + 16, y * TILE + 16, 8, 0, Math.PI * 2 * (game.time * 0.5 % 1));
+        ctx.stroke();
+      }
+    }
+  }
+}
+
+function drawPlayer() {
+  const px = player.x;
+  const py = player.y;
+  const s = player.size;
+
+  // 身体
+  ctx.fillStyle = player.poisoned ? '#b080d0' : '#f0c0a0';
+  ctx.beginPath();
+  ctx.arc(px, py, s, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 头
+  ctx.fillStyle = player.poisoned ? '#c090e0' : '#f0d0b0';
+  ctx.beginPath();
+  ctx.arc(px, py - s * 0.3, s * 0.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 帽子
+  ctx.fillStyle = player.poisoned ? '#9060b0' : '#d4a030';
+  ctx.fillRect(px - s * 0.5, py - s * 0.7, s, s * 0.3);
+  ctx.fillRect(px - s * 0.6, py - s * 0.5, s * 1.2, s * 0.1);
+
+  // 眼睛
+  ctx.fillStyle = '#333';
+  ctx.beginPath();
+  ctx.arc(px - s * 0.2, py - s * 0.35, 2, 0, Math.PI * 2);
+  ctx.arc(px + s * 0.2, py - s * 0.35, 2, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 抄子 (朝向方向)
+  const dirX = Math.cos(player.direction);
+  const dirY = Math.sin(player.direction);
+  ctx.strokeStyle = '#8B4513';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(px + dirX * s * 0.5, py + dirY * s * 0.5);
+  ctx.lineTo(px + dirX * (s + 18), py + dirY * (s + 18));
+  ctx.stroke();
+
+  // 抄网
+  ctx.strokeStyle = 'rgba(200,200,200,0.5)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(px + dirX * (s + 22), py + dirY * (s + 22), 8, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,0.1)';
+  ctx.fill();
+}
+
+function drawBugs() {
+  for (const bug of bugs) {
+    if (bug.inHole) {
+      // 在洞里显示半截
+      ctx.globalAlpha = 0.4;
+    }
+
+    const bx = bug.x;
+    const by = bug.y - (bug.flying ? 8 : 0);
+
+    // 身体
+    ctx.fillStyle = bug.color;
+    ctx.beginPath();
+    ctx.ellipse(bx, by, bug.size, bug.size * 0.6, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 腿 (简单画几条线)
+    if (!bug.flying) {
+      ctx.strokeStyle = bug.color;
+      ctx.lineWidth = 1.5;
+      for (let i = -1; i <= 1; i += 0.5) {
+        if (i === 0) continue;
+        ctx.beginPath();
+        ctx.moveTo(bx + i * bug.size * 0.3, by);
+        ctx.lineTo(bx + i * bug.size * 0.7, by + bug.size * 0.5);
+        ctx.stroke();
+      }
+    }
+
+    // 翅膀 (飞行时)
+    if (bug.flying) {
+      ctx.fillStyle = 'rgba(200,230,255,0.4)';
+      ctx.beginPath();
+      ctx.ellipse(bx - bug.size * 0.4, by - bug.size * 0.3, bug.size * 0.5, bug.size * 0.2,
+        -0.3 + Math.sin(game.time * 20) * 0.1, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(bx + bug.size * 0.4, by - bug.size * 0.3, bug.size * 0.5, bug.size * 0.2,
+        0.3 + Math.sin(game.time * 20 + 1) * 0.1, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // 名字
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.font = '9px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(bug.name, bx, by + bug.size + 10);
+
+    ctx.globalAlpha = 1.0;
+  }
+}
+
+function drawFloatingTexts() {
+  for (const ft of floatingTexts) {
+    ctx.globalAlpha = ft.life / 1.5;
+    ctx.fillStyle = ft.color;
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(ft.text, ft.x, ft.y);
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawHoles() {
+  // 简单画一些洞的标记
+}
+
+function render() {
+  ctx.clearRect(0, 0, W, H);
+
+  // 地图
+  drawMap();
+
+  // 洞标记
+  for (let y = 0; y < ROWS; y++) {
+    for (let x = 0; x < COLS; x++) {
+      if (map[y][x] === TERRAIN.HOLE) {
+        ctx.fillStyle = 'rgba(40,30,20,0.5)';
+        ctx.beginPath();
+        ctx.ellipse(x * TILE + 16, y * TILE + 18, 10, 6, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(30,20,10,0.6)';
+        ctx.beginPath();
+        ctx.ellipse(x * TILE + 16, y * TILE + 18, 6, 3, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
+
+  // 虫子
+  drawBugs();
+
+  // 玩家
+  drawPlayer();
+
+  // 浮动文字
+  drawFloatingTexts();
+
+  // 视野提示 (中毒时模糊效果)
+  if (player.poisoned) {
+    ctx.fillStyle = 'rgba(150,50,200,0.08)';
+    ctx.fillRect(0, 0, W, H);
+  }
+}
+
+// ═══════════════════════════════════════
+// 游戏循环
+// ═══════════════════════════════════════
+
+let lastTime = 0;
+
+function gameLoop(time) {
+  const dt = Math.min((time - lastTime) / 1000, 0.05);
+  lastTime = time;
+
+  update(dt);
+  render();
+  requestAnimationFrame(gameLoop);
+}
+
+// ═══════════════════════════════════════
+// 输入处理
+// ═══════════════════════════════════════
+
+document.addEventListener('keydown', (e) => {
+  const key = e.key.toLowerCase();
+  game.keys[key] = true;
+  if (key === 'arrowup') game.keys['arrowup'] = true;
+  if (key === 'arrowdown') game.keys['arrowdown'] = true;
+  if (key === 'arrowleft') game.keys['arrowleft'] = true;
+  if (key === 'arrowright') game.keys['arrowright'] = true;
+
+  // 抄子
+  if (key === 'e' || key === ' ') {
+    e.preventDefault();
+    useNet();
+  }
+  // 铲子
+  if (key === 'q') {
+    useShovel();
+  }
+});
+
+document.addEventListener('keyup', (e) => {
+  const key = e.key.toLowerCase();
+  game.keys[key] = false;
+  if (key === 'arrowup') game.keys['arrowup'] = false;
+  if (key === 'arrowdown') game.keys['arrowdown'] = false;
+  if (key === 'arrowleft') game.keys['arrowleft'] = false;
+  if (key === 'arrowright') game.keys['arrowright'] = false;
+});
+
+// ═══════════════════════════════════════
+// 启动游戏
+// ═══════════════════════════════════════
+
+initMap();
+// 初始生成几只虫子
+for (let i = 0; i < 5; i++) spawnBug();
+bugSpawnTimer = 2;
+
+requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>
