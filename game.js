@@ -1073,13 +1073,14 @@ function update(dt) {
   try {
   if (state.ended) return;
   state.time += dt;
+  // 90秒游戏时限
+  if (state.time > 90) { finishGame(); return; }
   updatePoison(dt);
   updatePlayer(dt);
   updateHoles(dt);
   for (const bug of (state.bugs || [])) updateBug(bug, dt);
   updateFloats(dt);
   updateHUD();
-  // game time handled above
   } catch(e) { console.error("Update err:", e); }
 }
 
