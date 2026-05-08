@@ -1718,7 +1718,7 @@ let lastFrame = performance.now();
 
 document.addEventListener("keydown", (event) => {
   state.keys[event.code] = true;
-  if (["KeyE", "Space", "KeyQ", "KeyR"].includes(event.code)) event.preventDefault();
+  if (["KeyE", "Space", "KeyQ", "KeyR", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.code)) event.preventDefault();
   initAudio();
   if (event.code === "KeyE" || event.code === "Space") catchWithNet();
   if (event.code === "KeyQ") shovelHole();
