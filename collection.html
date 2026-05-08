@@ -5,75 +5,169 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>📖 昆虫图鉴</title>
   <link rel="stylesheet" href="style.css">
+<style>
+.collection-shell{max-width:800px!important}
+.bug-grid{display:grid;grid-template-columns:1fr;gap:16px;margin-top:16px}
+.bug-card{
+display:flex;gap:16px;padding:16px;border-radius:16px;
+background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);
+transition:.2s;align-items:flex-start;
+}
+.bug-card.caught{border-color:rgba(100,255,150,0.2);background:rgba(100,255,150,0.04)}
+.bug-card.missing{opacity:.7}
+.bug-card .img-wrap{
+width:120px;height:120px;border-radius:12px;overflow:hidden;flex-shrink:0;
+background:rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:center
+}
+.bug-card .img-wrap img{width:100%;height:100%;object-fit:cover}
+.bug-card .img-wrap .fallback{font-size:48px;opacity:.3}
+.bug-card .info{flex:1;min-width:0}
+.bug-card .name{font-size:20px;font-weight:600;margin-bottom:2px}
+.bug-card .meta{font-size:13px;opacity:.6;margin-bottom:6px}
+.bug-card .meta .tag{display:inline-block;padding:1px 8px;border-radius:6px;font-size:11px;margin-right:4px}
+.tag-toxic{background:rgba(171,71,188,.25);color:#ce93d8}
+.tag-common{background:rgba(76,175,80,.2);color:#81c784}
+.tag-rare{background:rgba(255,193,7,.2);color:#ffd54f}
+.tag-trap{background:rgba(244,67,54,.2);color:#ef9a9a}
+.bug-card .status{font-size:13px;margin:4px 0}
+.bug-card .status.caught{color:#81c784}
+.bug-card .status.missing{color:rgba(255,255,255,.3)}
+.bug-card .desc{font-size:13px;opacity:.65;line-height:1.6}
+.bug-card .desc strong{opacity:.9}
+</style>
 </head>
 <body>
-  <main class="collection-page">
-    <section class="collection-shell glass-shell">
-      <header class="collection-header">
-        <h1>📖 昆虫图鉴</h1>
-        <a class="btn small-btn" href="index.html">🏠 首页</a>
-      </header>
-      <div class="bug-grid" id="bugGrid"></div>
-    </section>
-  </main>
+<main class="collection-page">
+  <section class="collection-shell glass-shell">
+    <header class="collection-header">
+      <h1>📖 昆虫图鉴</h1>
+      <a class="btn small-btn" href="index.html">🏠 返回</a>
+    </header>
 
-  <script>
-    const BUGS = [
-      { id: "grasshopper", name: "蚂蚱", rarity: "⭐ 普通", points: 10, toxic: false, asset: "grasshopper", desc: "会跳跃移动，常从草地洞口钻进钻出。" },
-      { id: "mantis", name: "螳螂", rarity: "⭐ 普通", points: 15, toxic: false, asset: "mantis", desc: "静止时半透明，靠近它才会迅速逃开。" },
-      { id: "beetle", name: "独角仙", rarity: "⭐⭐ 稀有", points: 50, toxic: false, asset: "beetle", desc: "移动慢但耐力很好，能飞很久。" },
-      { id: "butterfly", name: "蝴蝶", rarity: "⭐⭐ 稀有", points: 30, toxic: false, asset: "butterfly", desc: "路线飘忽，像波浪一样飞行。" },
-      { id: "cicada", name: "知了", rarity: "⭐ 普通", points: 20, toxic: false, asset: "cicada", desc: "停在地图边缘的树上，会喊“知了”。" },
-      { id: "spider", name: "蜘蛛", rarity: "⭐ 少见", points: 25, toxic: true, asset: "spider", desc: "在网内移动很快，碰到会中毒。" },
-      { id: "dung", name: "屎壳郎", rarity: "💀 陷阱", points: -10, toxic: true, asset: "dung", desc: "推着粪球移动，碰到会扣分并中毒。" },
-    ];
+    <div style="display:flex;gap:8px;margin:12px 0;flex-wrap:wrap">
+      <span style="color:rgba(255,255,255,.3);font-size:12px">🟢 已捕获</span>
+      <span style="color:rgba(255,255,255,.3);font-size:12px">⚪ 未捕获</span>
+      <span style="margin-left:auto;color:rgba(255,255,255,.2);font-size:11px">共7种昆虫</span>
+    </div>
 
-    function readCaught() {
-      try {
-        const raw = JSON.parse(localStorage.getItem("bugCatchCaught") || "{}");
-        return raw && typeof raw === "object" ? raw : {};
-      } catch {
-        return {};
-      }
-    }
+    <div class="bug-grid" id="bugGrid"></div>
+  </section>
+</main>
 
-    function readLegacyCaught() {
-      try {
-        const ranks = JSON.parse(localStorage.getItem("bugRanks") || "[]");
-        return ranks.reduce((acc, item) => {
-          if (item.bugs) {
-            Object.entries(item.bugs).forEach(([key, value]) => {
-              acc[key] = (acc[key] || 0) + value;
-            });
-          }
-          return acc;
-        }, {});
-      } catch {
-        return {};
-      }
-    }
+<script>
+const BUGS = [
+  {
+    id:'grasshopper',name:'🦗 蚂蚱',file:'grasshopper_small.png',
+    rarity:'普通',rarityCls:'tag-common',points:10,toxic:false,habitat:'草地、田野',
+    size:'2~4cm',feature:'后腿发达，善于跳跃',
+    desc:'<strong>蚂蚱</strong>，又名蝗虫，是草地和田野中最常见的昆虫之一。' +
+      '它拥有<strong>强壮的后腿</strong>，可以跳出相当于自己身长20倍的距离！' +
+      '在游戏中，蚂蚱会<strong>跳跃移动</strong>，抓到它获得10分。' +
+      '它们常常在<strong>土洞</strong>附近出没。'
+  },
+  {
+    id:'mantis',name:'🦟 螳螂',file:'mantis_small.png',
+    rarity:'普通',rarityCls:'tag-common',points:15,toxic:false,habitat:'草丛、灌木',
+    size:'5~8cm',feature:'三角形头，镰刀状前足',
+    desc:'<strong>螳螂</strong>是草丛中的伏击猎手。它有着<strong>三角形的头</strong>和一对<strong>镰刀状的前足</strong>，' +
+      '能180度转动头部观察四周。在游戏中，螳螂静止时呈<strong>半透明伪装</strong>，' +
+      '靠近才会发现它。抓到它获得15分，常在<strong>草洞</strong>栖息。'
+  },
+  {
+    id:'beetle',name:'🪲 独角仙',file:'beetle_small.png',
+    rarity:'稀有',rarityCls:'tag-rare',points:50,toxic:false,habitat:'树林、朽木',
+    size:'4~8cm',feature:'头上长有巨大的叉角',
+    desc:'<strong>独角仙</strong>，又名双叉犀金龟，是昆虫界的<strong>大力士</strong>。' +
+      '雄虫头部有一个巨大的<strong>叉角</strong>，用于争夺领地。' +
+      '在游戏中，独角仙<strong>移动慢但耐力极好</strong>，可以持续飞行很久。' +
+      '抓到它获得<strong>50分</strong>，是最有价值的昆虫之一！'
+  },
+  {
+    id:'butterfly',name:'🦋 蝴蝶',file:'butterfly_small.png',
+    rarity:'稀有',rarityCls:'tag-rare',points:30,toxic:false,habitat:'花丛、草地',
+    size:'5~12cm',feature:'翅膀有绚丽花纹',
+    desc:'<strong>蝴蝶</strong>是大自然最美的昆虫之一。它们的翅膀覆盖着<strong>微小的鳞片</strong>，' +
+      '构成了千变万化的图案。在游戏中，蝴蝶的飞行路线<strong>飘忽不定</strong>，' +
+      '像波浪一样起伏。抓到它获得30分。它们喜欢在<strong>花洞</strong>附近活动。'
+  },
+  {
+    id:'cicada',name:'🦗 知了',file:'cicada_small.png',
+    rarity:'普通',rarityCls:'tag-common',points:20,toxic:false,habitat:'树干、树枝',
+    size:'3~5cm',feature:'会发出响亮的鸣叫声',
+    desc:'<strong>知了</strong>，也叫蝉，是夏天的标志性昆虫。' +
+      '雄蝉通过腹部的<strong>鼓膜</strong>发出震耳欲聋的鸣叫声，' +
+      '在炎热的夏日里此起彼伏。在游戏中，知了<strong>停在地图边缘的树上</strong>，' +
+      '会周期性发出"知了"的提示。抓到它获得20分。'
+  },
+  {
+    id:'spider',name:'🕷️ 蜘蛛',file:'spider_small.png',
+    rarity:'少见',rarityCls:'tag-trap',points:25,toxic:true,habitat:'角落、树丛',
+    size:'1~3cm',feature:'8条腿，能织网',
+    desc:'<strong>蜘蛛</strong>虽然不算是昆虫（属于蛛形纲），但它是野外最常见的节肢动物之一。' +
+      '它有<strong>8条腿</strong>，能纺织出精巧的丝网。' +
+      '<strong style="color:#ce93d8">⚠️ 有毒！</strong>在游戏中碰到蜘蛛会<strong>中毒</strong>，' +
+      '一段时间内不能移动并持续扣分。它在<strong>网洞</strong>内移动极快。'
+  },
+  {
+    id:'dung',name:'💩 屎壳郎',file:'dung_small.png',
+    rarity:'陷阱',rarityCls:'tag-trap',points:-10,toxic:true,habitat:'地面、粪堆',
+    size:'2~4cm',feature:'以粪便为食，滚粪球',
+    desc:'<strong>屎壳郎</strong>，学名蜣螂，是大自然的<strong>清道夫</strong>。' +
+      '它们以动物粪便为食，会把粪便<strong>滚成圆球</strong>推回家。' +
+      '<strong style="color:#ce93d8">⚠️ 陷阱！扣分+中毒！</strong>' +
+      '在游戏中碰到屎壳郎会<strong>扣10分并中毒</strong>，务必小心！' +
+      '它推着的粪球就是最好的警示标志。'
+  },
+];
 
-    const grid = document.getElementById("bugGrid");
-    const caught = { ...readLegacyCaught() };
-    const current = readCaught();
-    Object.entries(current).forEach(([key, value]) => {
-      caught[key] = (caught[key] || 0) + value;
-    });
+function readCaught() {
+  try {
+    const a = JSON.parse(localStorage.getItem('bugCatchCaught')||'{}');
+    const b = JSON.parse(localStorage.getItem('bugRanks')||'[]').reduce((acc,i)=>{
+      if(i.bugs)Object.entries(i.bugs).forEach(([k,v])=>acc[k]=(acc[k]||0)+v);return acc;
+    },{});
+    if(typeof a==='object')Object.entries(a).forEach(([k,v])=>b[k]=(b[k]||0)+v);
+    return b;
+  }catch{return{}}
+}
 
-    grid.innerHTML = BUGS.map((bug) => {
-      const count = caught[bug.id] || 0;
-      const points = `${bug.points > 0 ? "+" : ""}${bug.points} 分`;
-      return `
-        <article class="bug-card ${count ? "caught" : "missing"}">
-          <img src="assets/${bug.asset}.png" alt="${bug.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex'">
-          <span class="asset-icon" style="display:none;align-items:center;justify-content:center;font-size:50px">${bug.toxic ? "⚠️" : "🐛"}</span>
-          <div class="bug-name">${bug.name}</div>
-          <div class="bug-meta">${bug.rarity} · ${points}${bug.toxic ? " · 有毒" : ""}</div>
-          <div class="bug-count">${count ? `已捕获 × ${count}` : "未捕获"}</div>
-          <div class="bug-desc">${bug.desc}</div>
-        </article>
-      `;
-    }).join("");
-  </script>
+const caught = readCaught();
+const grid = document.getElementById('bugGrid');
+
+grid.innerHTML = BUGS.map(b => {
+  const cnt = caught[b.id]||0;
+  return `
+    <article class="bug-card ${cnt?'caught':'missing'}">
+      <div class="img-wrap">
+        <img src="assets/${b.file}" alt="${b.name}"
+          onerror="this.style.display='none';this.parentNode.innerHTML='<span class=fallback>${b.name.slice(0,2)}</span>'">
+      </div>
+      <div class="info">
+        <div class="name">${b.name}</div>
+        <div class="meta">
+          <span class="tag ${b.rarityCls}">${b.rarity}</span>
+          ${b.toxic?'<span class="tag tag-toxic">☠️ 有毒</span>':''}
+          ${b.points>0?'+':''}${b.points}分 · ${b.habitat} · ${b.size}
+        </div>
+        <div class="desc">${b.desc}</div>
+        <div class="meta" style="margin-top:6px">
+          <strong>特征</strong>：${b.feature}
+        </div>
+        <div class="status ${cnt?'caught':'missing'}">
+          ${cnt ? `✅ 已捕获 × ${cnt}` : '⚪ 未捕获'}
+        </div>
+      </div>
+    </article>
+  `;
+}).join('');
+
+// 没抓到任何虫子时提示
+if(Object.keys(caught).length===0){
+  const msg = document.createElement('div');
+  msg.style.cssText = 'text-align:center;padding:30px;opacity:.5;font-size:15px';
+  msg.textContent = '还没有抓到任何虫子，出发去抓虫吧！';
+  document.querySelector('.bug-grid').after(msg);
+}
+</script>
 </body>
 </html>
