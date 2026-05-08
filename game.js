@@ -2,6 +2,70 @@
 const SELECTED_CHAR = localStorage.getItem('selectedChar') || 'child';
 const selectedCharFile = SELECTED_CHAR === 'child' ? 'assets/child_small.png' : 'assets/' + SELECTED_CHAR + '_small.png';
 
+// ── 加载系统 ──
+let loadingState = { total: 0, loaded: 0, errors: 0, ready: false };
+const LOADING_IMAGES = [];
+
+function trackImageLoad(img, label) {
+  loadingState.total++;
+  LOADING_IMAGES.push(img);
+  const onDone = () => { loadingState.loaded++; drawLoadingScreen(); };
+  const onError = () => { loadingState.loaded++; loadingState.errors++; drawLoadingScreen(); };
+  img.addEventListener('load', onDone, { once: true });
+  img.addEventListener('error', onError, { once: true });
+  // 如果图片已经加载完
+  if (img.complete && img.naturalWidth > 0) { setTimeout(onDone, 0); }
+}
+
+function drawLoadingScreen() {
+  const pct = loadingState.total > 0 ? Math.round(loadingState.loaded / loadingState.total * 100) : 0;
+  ctx.fillStyle = '#1a2a1a';
+  ctx.fillRect(0, 0, 960, 640);
+  
+  // 标题
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 28px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('🐛 抓虫大冒险', 480, 260);
+  
+  // 加载条背景
+  ctx.fillStyle = 'rgba(255,255,255,0.1)';
+  ctx.beginPath();
+  ctx.roundRect(480 - 120, 310, 240, 20, 10);
+  ctx.fill();
+  
+  // 加载条进度
+  if (pct > 0) {
+    const g = ctx.createLinearGradient(480 - 120, 0, 480 + 120, 0);
+    g.addColorStop(0, '#4caf50'); g.addColorStop(1, '#8bc34a');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.roundRect(480 - 120, 310, 240 * pct / 100, 20, 10);
+    ctx.fill();
+  }
+  
+  // 百分比
+  ctx.fillStyle = '#fff';
+  ctx.font = '14px sans-serif';
+  ctx.textAlign = 'center';
+  const errorText = loadingState.errors > 0 ? ` (${loadingState.errors}个加载失败)` : '';
+  ctx.fillText(`加载中 ${pct}%${errorText}`, 480, 350);
+  
+  // 提示
+  if (loadingState.ready) {
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.font = '13px sans-serif';
+    ctx.fillText('按任意键或点击开始...', 480, 390);
+  }
+}
+
+function checkAllLoaded() {
+  if (loadingState.loaded >= loadingState.total) {
+    loadingState.ready = true;
+    drawLoadingScreen();
+  }
+}
+
 const TILE = 32;
 const COLS = 50;
 const ROWS = 34;
@@ -1331,6 +1395,8 @@ function handleAssetLoaded(name, img) {
 }
 
 function loadAssets() {
+  // 先显示加载画面
+  drawLoadingScreen();
   initSprites();
   loadMapTiles();
   const files = {
