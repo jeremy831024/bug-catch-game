@@ -1563,7 +1563,17 @@ function loadAssets() {
   // 先显示加载画面
   drawLoadingScreen();
   initSprites();
-  loadMapTiles();
+  // 地图贴片加载（简化版）
+  try {
+    const tileImgs = {};
+    ['grass1_tile','grass2_tile','grass3_tile','road2_tile','water1_tile','water2_tile'].forEach(name => {
+      const img = new Image();
+      img.src = 'assets/' + name + '.png';
+      tileImgs[name] = img;
+      trackImageLoad(img, 'tile_' + name);
+    });
+    window.tileImgs = tileImgs;
+  } catch(e) {}
   const files = {
     child: selectedCharFile,
     grasshopper: "assets/grasshopper_small.png",
