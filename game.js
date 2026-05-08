@@ -995,6 +995,142 @@ function drawHoles(time) {
 }
 
 // 真实风格昆虫绘制
+
+// ═══════════════════════════════════════
+// 高分辨率昆虫精灵 (256x256 → 平滑抗锯齿)
+// ═══════════════════════════════════════
+const SPRITE_CACHE = {};
+
+function cacheSprite(id, drawFn) {
+  const c = document.createElement('canvas');
+  c.width = 256; c.height = 256;
+  const cx = c.getContext('2d');
+  cx.imageSmoothingEnabled = true;
+  drawFn(cx, 128, 128, 80);
+  SPRITE_CACHE[id] = c;
+}
+
+function initSprites() {
+  // 蚂蚱
+  cacheSprite('hopper', (ctx, x, y, s) => {
+    ctx.save(); ctx.translate(x, y);
+    ctx.fillStyle = '#5a8a30'; ctx.beginPath(); ctx.ellipse(0, 0, s*0.8, s*0.35, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#6a9a30'; ctx.beginPath(); ctx.arc(s*0.6, -s*0.1, s*0.25, 0, 7); ctx.fill();
+    ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(s*0.65, -s*0.12, 3, 0, 7); ctx.arc(s*0.65, s*0.02, 3, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#4a6a20'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(-s*0.3, s*0.2); ctx.lineTo(-s*0.7, s*0.7); ctx.lineTo(-s*0.5, s*0.8); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-s*0.3, -s*0.2); ctx.lineTo(-s*0.7, -s*0.7); ctx.lineTo(-s*0.5, -s*0.8); ctx.stroke();
+    ctx.fillStyle = 'rgba(150,200,100,0.2)'; ctx.beginPath(); ctx.ellipse(-s*0.1, -s*0.35, s*0.4, s*0.12, -0.1, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#3a5a10'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(s*0.7, -s*0.2); ctx.lineTo(s*1.1, -s*0.5); ctx.moveTo(s*0.7, s*0.1); ctx.lineTo(s*1.1, s*0.4); ctx.stroke();
+    ctx.restore();
+  });
+  
+  // 螳螂
+  cacheSprite('mantis', (ctx, x, y, s) => {
+    ctx.save(); ctx.translate(x, y);
+    ctx.fillStyle = '#4a7a30';
+    ctx.beginPath(); ctx.moveTo(-s*0.8, 0); ctx.lineTo(0, -s*0.15); ctx.lineTo(s*0.8, -s*0.05);
+    ctx.lineTo(s*0.8, s*0.05); ctx.lineTo(0, s*0.15); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#5a8a30'; ctx.beginPath();
+    ctx.moveTo(s*0.6, -s*0.2); ctx.lineTo(s*1.1, 0); ctx.lineTo(s*0.6, s*0.2); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#ff2222'; ctx.beginPath(); ctx.arc(s*0.9, -s*0.05, 2.5, 0, 7); ctx.arc(s*0.9, s*0.05, 2.5, 0, 7); ctx.fill();
+    ctx.fillStyle = 'rgba(140,200,100,0.15)'; ctx.beginPath(); ctx.ellipse(-s*0.2, -s*0.22, s*0.35, s*0.1, -0.05, 0, 7); ctx.fill();
+    ctx.restore();
+  });
+  
+  // 独角仙
+  cacheSprite('beetle', (ctx, x, y, s) => {
+    ctx.save(); ctx.translate(x, y);
+    const g = ctx.createRadialGradient(-10, -5, 0, 0, 0, s*0.9);
+    g.addColorStop(0, '#6a4a22'); g.addColorStop(0.5, '#4a2a10'); g.addColorStop(1, '#2a1a00');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(0, 0, s*0.9, s*0.5, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#3a2a10'; ctx.beginPath(); ctx.arc(s*0.6, -s*0.02, s*0.3, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#2a1a00'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(s*0.7, -s*0.1); ctx.lineTo(s*1.2, -s*0.3); ctx.lineTo(s*1.3, -s*0.15); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(s*0.7, s*0.06); ctx.lineTo(s*1.2, s*0.26); ctx.lineTo(s*1.3, s*0.1); ctx.stroke();
+    ctx.strokeStyle = 'rgba(40,20,0,0.2)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(-s*0.3, 0); ctx.lineTo(s*0.4, 0); ctx.stroke();
+    ctx.restore();
+  });
+  
+  // 蝴蝶 - 高分辨率渐变翅膀
+  cacheSprite('butterfly', (ctx, x, y, s) => {
+    ctx.save(); ctx.translate(x, y);
+    const gw = ctx.createRadialGradient(-s*0.4, -s*0.2, 0, 0, 0, s*0.8);
+    gw.addColorStop(0, '#ff88d0'); gw.addColorStop(0.3, '#ffaa50');
+    gw.addColorStop(0.6, '#e890d0'); gw.addColorStop(1, '#8a60aa');
+    // 左翅
+    ctx.fillStyle = gw; ctx.beginPath();
+    ctx.moveTo(0, 0); ctx.bezierCurveTo(-s*0.8, -s*0.5, -s*0.9, -s*0.2, -s*0.5, s*0.1);
+    ctx.bezierCurveTo(-s*0.7, s*0.3, -s*0.3, s*0.5, 0, s*0.1); ctx.closePath(); ctx.fill();
+    // 右翅
+    ctx.fillStyle = gw; ctx.beginPath();
+    ctx.moveTo(0, 0); ctx.bezierCurveTo(s*0.8, -s*0.5, s*0.9, -s*0.2, s*0.5, s*0.1);
+    ctx.bezierCurveTo(s*0.7, s*0.3, s*0.3, s*0.5, 0, s*0.1); ctx.closePath(); ctx.fill();
+    // 身体
+    ctx.fillStyle = '#2a2a2a'; ctx.beginPath(); ctx.ellipse(0, 0, s*0.08, s*0.25, 0, 0, 7); ctx.fill();
+    ctx.restore();
+  });
+  
+  // 知了
+  cacheSprite('cicada', (ctx, x, y, s) => {
+    ctx.save(); ctx.translate(x, y);
+    ctx.fillStyle = '#4a6a3a'; ctx.fillRect(-6, -20, 12, 32);
+    ctx.fillStyle = '#5a8a3a'; ctx.beginPath(); ctx.arc(0, -24, 16, 0, 7); ctx.fill();
+    ctx.fillStyle = '#3a4a2a'; ctx.beginPath(); ctx.ellipse(0, -18, 8, 6, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = 'rgba(180,200,150,0.25)';
+    ctx.beginPath(); ctx.ellipse(-4, -20, 5, 3, -0.2, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(4, -20, 5, 3, 0.2, 0, 7); ctx.fill();
+    ctx.fillStyle = '#cc3333'; ctx.beginPath(); ctx.arc(-3, -19, 2, 0, 7); ctx.arc(3, -19, 2, 0, 7); ctx.fill();
+    ctx.restore();
+  });
+  
+  // 蜘蛛 + 网
+  cacheSprite('spider', (ctx, x, y, s) => {
+    ctx.save(); ctx.translate(x, y);
+    ctx.strokeStyle = 'rgba(200,200,200,0.1)'; ctx.lineWidth = 0.5;
+    for(let i=0;i<8;i++){let a=i*0.785;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(Math.cos(a)*s*2,Math.sin(a)*s*2);ctx.stroke()}
+    ctx.fillStyle = '#2a2a2a'; ctx.beginPath(); ctx.ellipse(0, 0, s*0.35, s*0.3, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#1a1a1a'; ctx.beginPath(); ctx.ellipse(0, -s*0.25, s*0.25, s*0.2, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#ff4444'; ctx.beginPath(); ctx.arc(-s*0.12, -s*0.3, 2, 0, 7); ctx.arc(s*0.12, -s*0.3, 2, 0, 7); ctx.fill();
+    ctx.restore();
+  });
+  
+  // 屎壳郎 + 粪球
+  cacheSprite('dung', (ctx, x, y, s) => {
+    ctx.save(); ctx.translate(x, y);
+    const bg = ctx.createRadialGradient(-4, 6, 0, 0, 4, s*0.7);
+    bg.addColorStop(0, '#7a5a3a'); bg.addColorStop(0.5, '#5a3a1a'); bg.addColorStop(1, '#3a2a10');
+    ctx.fillStyle = bg; ctx.beginPath(); ctx.arc(s*0.5, s*0.3, s*0.6, 0, 7); ctx.fill();
+    ctx.fillStyle = '#2a1a0a'; ctx.beginPath(); ctx.ellipse(0, 0, s*0.55, s*0.3, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#1a0a00'; ctx.beginPath(); ctx.arc(-s*0.35, -s*0.05, s*0.25, 0, 7); ctx.fill();
+    ctx.restore();
+  });
+  
+  // 小朋友
+  cacheSprite('child', (ctx, x, y, s) => {
+    ctx.save(); ctx.translate(x, y);
+    ctx.fillStyle = '#e8c8a8'; ctx.beginPath(); ctx.arc(0, 0, s*0.5, 0, 7); ctx.fill();
+    ctx.fillStyle = '#f0d8b8'; ctx.beginPath(); ctx.arc(0, -s*0.25, s*0.3, 0, 7); ctx.fill();
+    ctx.fillStyle = '#c89830';
+    ctx.beginPath(); ctx.ellipse(0, -s*0.5, s*0.35, s*0.08, 0, 0, 7); ctx.fill();
+    ctx.fillRect(-s*0.25, -s*0.65, s*0.5, s*0.18);
+    ctx.fillStyle = '#333'; ctx.beginPath();
+    ctx.arc(-s*0.1, -s*0.28, 2, 0, 7); ctx.arc(s*0.1, -s*0.28, 2, 0, 7); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.beginPath();
+    ctx.arc(-s*0.08, -s*0.3, 0.8, 0, 7); ctx.arc(s*0.12, -s*0.3, 0.8, 0, 7); ctx.fill();
+    ctx.fillStyle = '#c08060'; ctx.beginPath(); ctx.arc(0, -s*0.1, s*0.08, 0.1, 3, 0); ctx.fill();
+    ctx.restore();
+  });
+}
+
+// 用高分辨率 sprite 替代实时绘制
+function drawSpriteFromCache(id, x, y, sz) {
+  const c = SPRITE_CACHE[id];
+  if (!c) return;
+  ctx.drawImage(c, x - sz/2, y - sz/2, sz, sz);
+}
 function drawRealBug(bug) {
   const bx = bug.x, by = bug.y - (bug.flying ? 14 : 0);
   const sz = bug.size || 12;
@@ -1059,6 +1195,27 @@ function drawBug(bug) {
   const alpha = bug.id === "mantis" && !state.poison ? 0.3 : 1;
   ctx.save();
   ctx.globalAlpha = bug.holeId ? 0.25 : alpha;
+  if (bug.id === "spider") {
+    ctx.strokeStyle = "rgba(255,255,255,0.18)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(bug.x, bug.y, 28, 0, Math.PI * 2);
+    ctx.stroke();
+    for (let i = 0; i < 6; i++) {
+      const a = i * (Math.PI * 2 / 6);
+      ctx.beginPath();
+      ctx.moveTo(bug.x, bug.y);
+      ctx.lineTo(bug.x + Math.cos(a) * 24, bug.y + Math.sin(a) * 18);
+      ctx.stroke();
+    }
+  }
+  if (bug.id === "cicada") {
+    ctx.fillStyle = "#5f8a45";
+    ctx.fillRect(bug.x - 4, bug.y + 4, 8, 18);
+    ctx.beginPath();
+    ctx.arc(bug.x, bug.y + 2, 14, Math.PI, 0);
+    ctx.fill();
+  }
   drawRealBug(bug);
   if (bug.id === "cicada" && bug.showCall) {
     ctx.fillStyle = "rgba(255,231,164,0.9)";
@@ -1103,7 +1260,8 @@ function drawRealPlayer() {
 }
 
 function drawPlayer() {
-  drawRealPlayer();
+  if (state.finish) return;
+  drawSpriteFromCache('child', player.x, player.y, 48);
 }
 
 function drawFloats() {
@@ -1145,6 +1303,7 @@ function handleAssetLoaded(name, img) {
 }
 
 function loadAssets() {
+  initSprites();
   const files = {
     child: "assets/child.png",
     grasshopper: "assets/grasshopper.png",
