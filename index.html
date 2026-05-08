@@ -3,67 +3,114 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🐛 抓虫大冒险</title>
+  <title>🐛 抓虫大冒险 - 选角色</title>
   <link rel="stylesheet" href="style.css">
+<style>
+.char-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:16px 0}
+.char-card{
+background:rgba(255,255,255,0.06);border-radius:16px;padding:12px;text-align:center;
+cursor:pointer;transition:.2s;border:2px solid transparent;
+}
+.char-card:hover{background:rgba(255,255,255,0.1);transform:translateY(-2px)}
+.char-card.selected{border-color:rgba(100,255,150,0.5);background:rgba(100,255,150,0.08)}
+.char-card img{width:80px;height:80px;border-radius:50%;object-fit:cover;margin-bottom:6px}
+.char-card .cname{font-size:14px;font-weight:600}
+.char-card .cdesc{font-size:11px;opacity:.5;margin-top:2px}
+.char-select-title{text-align:center;font-size:18px;margin:8px 0 4px}
+.confirm-btn{display:block;width:100%;padding:12px;border-radius:14px;border:none;
+font-size:16px;font-weight:600;cursor:pointer;margin-top:8px;
+background:rgba(100,255,150,0.2);color:#81c784;transition:.2s}
+.confirm-btn:hover{background:rgba(100,255,150,0.3)}
+.confirm-btn:disabled{opacity:.3;cursor:default}
+</style>
 </head>
 <body>
-  <main class="page-center">
-    <section class="glass-shell">
-      <h1 class="brand-title">🐛 抓虫大冒险</h1>
-      <p class="subtitle">带上抄子和小铲子，在草地、山路、池塘边寻找七种奇妙昆虫。</p>
-      <nav class="actions" aria-label="主菜单">
-        <a class="btn primary" href="game.html">🎮 进入游戏</a>
-        <a class="btn" href="collection.html">📖 昆虫图鉴</a>
-        <button class="btn" type="button" id="rankButton">🏆 排行榜</button>
-      </nav>
-      <div class="home-help" aria-label="操作说明">
-        <span><kbd>WASD</kbd> / 方向键移动</span>
-        <span><kbd>E</kbd> / 空格挥抄子</span>
-        <span><kbd>Q</kbd> 站洞口挖洞</span>
-      </div>
-      <section class="leaderboard glass-panel" id="leaderboard" aria-live="polite">
-        <h2>🏆 前 5 名</h2>
-        <div id="scoreList"></div>
-      </section>
+<main class="page-center">
+  <section class="glass-shell">
+    <h1 class="brand-title">🐛 抓虫大冒险</h1>
+    <p class="subtitle">选择你的角色，出发抓虫！</p>
+    
+    <div class="char-select-title">👤 选择小朋友</div>
+    <div class="char-grid" id="charGrid"></div>
+    
+    <button class="confirm-btn" id="confirmBtn" disabled>✅ 选好了，出发！</button>
+    <div style="margin-top:12px;text-align:center">
+      <a href="collection.html" style="color:rgba(255,255,255,0.4);font-size:13px">📖 昆虫图鉴</a>
+      <span style="color:rgba(255,255,255,0.2);margin:0 8px">|</span>
+      <button class="btn" type="button" id="rankButton" style="font-size:13px;background:none;border:none;color:rgba(255,255,255,0.4);cursor:pointer">🏆 排行榜</button>
+      <button class="btn" type="button" id="skipBtn" style="font-size:13px;background:none;border:none;color:rgba(255,255,255,0.4);cursor:pointer">🎮 直接开始</button>
+    </div>
+    
+    <section class="leaderboard glass-panel" id="leaderboard">
+      <h2>🏆 前 5 名</h2>
+      <div id="scoreList"></div>
     </section>
-  </main>
+  </section>
+</main>
 
-  <script>
-    const rankButton = document.getElementById("rankButton");
-    const board = document.getElementById("leaderboard");
-    const scoreList = document.getElementById("scoreList");
+<script>
+const CHARS = [
+  {id:'child',name:'探险家',desc:'红帽蓝衣, 帅气出发',emoji:'🧑',file:'child_small.png'},
+  {id:'char1',name:'小帽',desc:'红帽探险家',emoji:'🧢',file:'char1_small.png'},
+  {id:'char2',name:'小蝶',desc:'花裙捕虫少女',emoji:'👧',file:'char2_small.png'},
+  {id:'char3',name:'四眼',desc:'眼镜小博士',emoji:'🤓',file:'char3_small.png'},
+  {id:'char4',name:'彩虹',desc:'雨衣小勇士',emoji:'🌈',file:'char4_small.png'},
+];
 
-    function readScores() {
-      try {
-        const current = JSON.parse(localStorage.getItem("bugCatchLeaderboard") || "[]");
-        const legacy = JSON.parse(localStorage.getItem("bugRanks") || "[]");
-        return [...current, ...legacy.map((item) => ({
-          score: item.score,
-          count: item.bugs ? Object.values(item.bugs).reduce((sum, value) => sum + value, 0) : 0,
-          date: item.date || item.time || Date.now(),
-        }))];
-      } catch {
-        return [];
-      }
-    }
+let selected = localStorage.getItem('selectedChar') || 'child';
 
-    function renderScores() {
-      const scores = readScores().sort((a, b) => b.score - a.score).slice(0, 5);
-      if (!scores.length) {
-        scoreList.innerHTML = '<p class="empty">还没有成绩，先去草地抓几只虫吧。</p>';
-        return;
-      }
-      scoreList.innerHTML = scores.map((item, index) => {
-        const date = new Date(item.date || Date.now()).toLocaleDateString("zh-CN");
-        const count = item.count || 0;
-        return `<div class="score-row"><span>${index + 1}. ${date}</span><strong>${item.score} 分 · ${count} 只</strong></div>`;
-      }).join("");
-    }
+const grid = document.getElementById('charGrid');
+for (const c of CHARS) {
+  const card = document.createElement('div');
+  card.className = 'char-card' + (c.id === selected ? ' selected' : '');
+  card.dataset.id = c.id;
+  card.innerHTML = `
+    <img src="assets/${c.file}" alt="${c.name}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22><rect fill=%22%23ddd%22 width=%2280%22 height=%2280%22/><text x=%2240%22 y=%2250%22 text-anchor=%22middle%22 font-size=%2240%22>${c.emoji}</text></svg>'">
+    <div class="cname">${c.name}</div>
+    <div class="cdesc">${c.desc}</div>
+  `;
+  card.addEventListener('click', () => {
+    document.querySelectorAll('.char-card').forEach(el => el.classList.remove('selected'));
+    card.classList.add('selected');
+    selected = c.id;
+    document.getElementById('confirmBtn').disabled = false;
+  });
+  grid.appendChild(card);
+}
 
-    rankButton.addEventListener("click", () => {
-      board.classList.toggle("open");
-      renderScores();
-    });
-  </script>
+document.getElementById('confirmBtn').addEventListener('click', () => {
+  localStorage.setItem('selectedChar', selected);
+  window.location.href = 'game.html';
+});
+
+document.getElementById('skipBtn').addEventListener('click', () => {
+  localStorage.setItem('selectedChar', selected);
+  window.location.href = 'game.html';
+});
+
+// 排行榜
+const rankButton = document.getElementById("rankButton");
+const board = document.getElementById("leaderboard");
+const scoreList = document.getElementById("scoreList");
+function readScores() {
+  try {
+    const current = JSON.parse(localStorage.getItem("bugCatchLeaderboard") || "[]");
+    const legacy = JSON.parse(localStorage.getItem("bugRanks") || "[]");
+    return [...current, ...legacy.map(i => ({score:i.score,count:i.bugs?Object.values(i.bugs).reduce((a,b)=>a+b,0):0,date:i.date||i.time||Date.now()}))];
+  } catch { return []; }
+}
+function renderScores() {
+  const scores = readScores().sort((a,b)=>b.score-a.score).slice(0,5);
+  if (!scores.length) { scoreList.innerHTML = '<p class="empty">还没有成绩</p>'; return; }
+  scoreList.innerHTML = scores.map((i,idx) => {
+    const d = new Date(i.date||Date.now()).toLocaleDateString("zh-CN");
+    return `<div class="score-row"><span>${idx+1}. ${d}</span><strong>${i.score}分 · ${i.count||0}只</strong></div>`;
+  }).join("");
+}
+rankButton.addEventListener("click", () => { board.classList.toggle("open"); renderScores(); });
+
+// 预选状态
+if (selected) document.getElementById('confirmBtn').disabled = false;
+</script>
 </body>
 </html>

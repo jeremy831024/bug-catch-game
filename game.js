@@ -1,3 +1,7 @@
+// 选中的角色
+const SELECTED_CHAR = localStorage.getItem('selectedChar') || 'child';
+const selectedCharFile = SELECTED_CHAR === 'child' ? 'assets/child_small.png' : 'assets/' + SELECTED_CHAR + '_small.png';
+
 const TILE = 32;
 const COLS = 30;
 const ROWS = 20;
@@ -1327,7 +1331,7 @@ function handleAssetLoaded(name, img) {
 function loadAssets() {
   initSprites();
   const files = {
-    child: "assets/child_small.png",
+    child: selectedCharFile,
     grasshopper: "assets/grasshopper_small.png",
     mantis: "assets/mantis_small.png",
     beetle: "assets/beetle_small.png",
