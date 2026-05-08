@@ -88,13 +88,15 @@ function checkAllLoaded() {
   }
 }
 
-const TILE = 32;
-const COLS = 50;
-const ROWS = 34;
-const WIDTH = COLS * TILE;
-const HEIGHT = ROWS * TILE;
 const VIEW_W = 960;
 const VIEW_H = 640;
+const W = 1600;
+const H = 1088;
+const WIDTH = W;
+const HEIGHT = H;
+const TILE = 16;
+const COLS = Math.floor(WIDTH / TILE);
+const ROWS = Math.floor(HEIGHT / TILE);
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -1540,10 +1542,10 @@ function drawFloats() {
 }
 
 function updateCamera() {
-  // 地图 960×640 刚好等于视口大小，无需相机滚动
-  // 相机固定在 (0,0)，避免边缘漂移露出空白
-  camera.x = 0;
-  camera.y = 0;
+  camera.x = player.x - VIEW_W / 2;
+  camera.y = player.y - VIEW_H / 2;
+  if (WIDTH > VIEW_W) camera.x = clamp(camera.x, 0, WIDTH - VIEW_W);
+  if (HEIGHT > VIEW_H) camera.y = clamp(camera.y, 0, HEIGHT - VIEW_H);
 }
 function drawTrees() {
   for (const tree of state.trees) {
@@ -1600,20 +1602,21 @@ function drawMinimap() {
   ctx.beginPath(); ctx.rect(mx, my, mmW, mmH); ctx.clip();
   
   // 缩略地图
-  const sx = mmW / 1600, sy = mmH / 1088;
-  for (let ty = 0; ty < 34; ty++) {
-    for (let tx = 0; tx < 50; tx++) {
+  const sx = mmW / WIDTH, sy = mmH / HEIGHT;
+  for (let ty = 0; ty < ROWS; ty++) {
+    for (let tx = 0; tx < COLS; tx++) {
       const t = state.map[ty] ? state.map[ty][tx] : 'grass';
       let c = '#5a9a4a';
       if (t === 'road') c = '#8a7a6a';
       else if (t === 'pond') c = '#4a8aba';
       ctx.fillStyle = c;
-      ctx.fillRect(mx + tx * 32 * sx, my + ty * 32 * sy, Math.max(1, 32 * sx), Math.max(1, 32 * sy));
+      const tw = Math.max(1, TILE * sx);
+      ctx.fillRect(mx + tx * TILE * sx, my + ty * TILE * sy, tw, tw);
     }
   }
   // 视野框
   ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 1;
-  ctx.strokeRect(mx + camera.x * sx, my + camera.y * sy, 960 * sx, 640 * sy);
+  ctx.strokeRect(mx + camera.x * sx, my + camera.y * sy, VIEW_W * sx, VIEW_H * sy);
   // 玩家点
   ctx.fillStyle = '#ffd700';
   ctx.beginPath(); ctx.arc(mx + player.x * sx, my + player.y * sy, 3, 0, 7); ctx.fill();
@@ -1708,8 +1711,8 @@ async function generateAssets() {
 
 function ensurePlayer() {
   return {
-    x: TILE * 25 + 16,
-    y: TILE * 17 + 16,
+    x: TILE * 50 + TILE / 2,
+    y: TILE * 34 + TILE / 2,
     dir: 0,
   };
 }
