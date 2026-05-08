@@ -49,9 +49,15 @@
 (function renderScores() {
   const list = document.getElementById('scoreList');
   try {
-    const scores = JSON.parse(localStorage.getItem('bugRanks') || '[]')
-      .sort((a,b) => b.score - a.score).slice(0,5);
-    if (!scores.length) return;
+    let scores = JSON.parse(localStorage.getItem('bugRanks') || '[]');
+    // 如果没有任何成绩，显示提示
+    if (!scores.length) {
+      // 不显示空状态，直接显示demo
+      scores = [
+        {name:'🎮 先玩一局',score:0,bugs:{}}
+      ];
+    }
+    scores = scores.sort((a,b) => b.score - a.score).slice(0,5);
     list.innerHTML = scores.map((s,i) => {
       const name = s.name || '探险家';
       const cnt = s.bugs ? Object.values(s.bugs).reduce((a,b)=>a+b,0) : 0;
