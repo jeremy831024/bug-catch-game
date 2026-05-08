@@ -1708,8 +1708,8 @@ async function generateAssets() {
 
 function ensurePlayer() {
   return {
-    x: TILE * 3 + 16,
-    y: TILE * 3 + 16,
+    x: TILE * 25 + 16,
+    y: TILE * 17 + 16,
     dir: 0,
   };
 }
