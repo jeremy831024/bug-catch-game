@@ -31,7 +31,7 @@
     </div>
 
     <div style="width:100%">
-      <a href="creator.html" style="display:block;width:100%;padding:12px;border-radius:12px;text-align:center;font-size:16px;font-weight:600;text-decoration:none;background:linear-gradient(135deg,#4caf50,#8bc34a);color:#fff;margin-bottom:8px;font-family:inherit">🎮 创造角色，开始冒险</a>
+      <a href="game.html" style="display:block;width:100%;padding:12px;border-radius:12px;text-align:center;font-size:16px;font-weight:600;text-decoration:none;background:linear-gradient(135deg,#4caf50,#8bc34a);color:#fff;margin-bottom:8px;font-family:inherit">🎮 开始抓虫冒险</a>
       <a href="collection.html" style="display:block;width:100%;padding:12px;border-radius:12px;text-align:center;font-size:16px;font-weight:600;text-decoration:none;background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);font-family:inherit">📖 昆虫图鉴</a>
     </div>
 
@@ -62,7 +62,7 @@ const BUG_NAMES = {grasshopper:'蚂蚱',mantis:'螳螂',beetle:'独角仙',butte
 function renderScores(rankType) {
   const list = document.getElementById('scoreList');
   try {
-    let scores = JSON.parse(localStorage.getItem('bugRanks') || '[]');
+    let scores = JSON.parse(localStorage.getItem('bugCatchLeaderboard') || '[]');
     
     if (!scores.length) {
       scores = [{name:'🎮 先玩一局',score:0,bugs:{}}];

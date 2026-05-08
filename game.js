@@ -680,7 +680,7 @@ function bugAtTile(tx, ty) {
 }
 
 function shovelHole() {
-  if (state.ended) return;
+  if (state.ended || state.poison > 0) return;
   const found = holeAtPlayer();
   if (!found) {
     state.stamina = clamp(state.stamina - 8, 0, 100);
@@ -723,7 +723,7 @@ function shovelHole() {
 }
 
 function catchWithNet() {
-  if (state.ended) return;
+  if (state.ended || state.poison > 0) return;
   const range = 40;
   const px = player.x + Math.cos(player.dir) * range;
   const py = player.y + Math.sin(player.dir) * range;
