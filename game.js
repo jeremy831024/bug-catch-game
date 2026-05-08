@@ -1067,6 +1067,7 @@ function finishGame() {
 }
 
 function update(dt) {
+  try {
   if (state.ended) return;
   state.time += dt;
   updatePoison(dt);
@@ -1076,6 +1077,7 @@ function update(dt) {
   updateFloats(dt);
   updateHUD();
   // game time handled above
+  } catch(e) { console.error("Update err:", e); }
 }
 
 // 简化perlin噪声用于地图
