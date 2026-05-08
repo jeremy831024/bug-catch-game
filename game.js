@@ -3,10 +3,12 @@ const SELECTED_CHAR = localStorage.getItem('selectedChar') || 'child';
 const selectedCharFile = SELECTED_CHAR === 'child' ? 'assets/child_small.png' : 'assets/' + SELECTED_CHAR + '_small.png';
 
 const TILE = 32;
-const COLS = 30;
-const ROWS = 20;
+const COLS = 50;
+const ROWS = 34;
 const WIDTH = COLS * TILE;
 const HEIGHT = ROWS * TILE;
+const VIEW_W = 960;
+const VIEW_H = 640;
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -1330,6 +1332,7 @@ function handleAssetLoaded(name, img) {
 
 function loadAssets() {
   initSprites();
+  loadMapTiles();
   const files = {
     child: selectedCharFile,
     grasshopper: "assets/grasshopper_small.png",
@@ -1340,6 +1343,10 @@ function loadAssets() {
     spider: "assets/spider_small.png",
     dung: "assets/dung_small.png",
     hole: "assets/hole.png",
+    // 卫星地图贴片
+    grassTiles: ["assets/grass1_tile.png","assets/grass2_tile.png","assets/grass3_tile.png"],
+    roadTiles: ["assets/road2_tile.png"],
+    waterTiles: ["assets/water1_tile.png","assets/water2_tile.png"],
   };
   for (const [name, src] of Object.entries(files)) {
     const img = new Image();
