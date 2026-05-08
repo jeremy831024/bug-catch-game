@@ -1072,7 +1072,7 @@ function update(dt) {
   updatePoison(dt);
   updatePlayer(dt);
   updateHoles(dt);
-  for (const bug of state.bugs) updateBug(bug, dt);
+  for (const bug of (state.bugs || [])) updateBug(bug, dt);
   updateFloats(dt);
   updateHUD();
   // game time handled above
@@ -1144,7 +1144,7 @@ function drawPondDetails(time) {
 }
 
 function drawHoles(time) {
-  for (const burrow of state.burrows) {
+  for (const burrow of (state.burrows || [])) {
     if (burrow.broken) continue;
     for (const exit of burrow.exits) {
       // 2.5D 洞 — 有深度的地洞
@@ -1563,7 +1563,7 @@ function render(time) {
   drawPondDetails(time);
   drawTrees();
   drawHoles(time);
-  for (const bug of state.bugs) drawBug(bug, time);
+  for (const bug of (state.bugs || [])) { try { drawBug(bug, time); } catch(e) {} }
   drawPlayer();
   drawFloats();
   if (state.poison > 0) {
@@ -1734,6 +1734,7 @@ ui.replayButton.addEventListener("click", () => window.location.reload());
 canvas.addEventListener("pointerdown", () => initAudio(), { passive: true });
 
 function initGame() {
+  ctx.fillStyle = "#FF0"; ctx.font = "24px bold sans-serif"; ctx.textAlign = "center"; ctx.fillText("🐛 游戏启动中...", 480, 320);
   buildMap();
   createBurrows();
   spawnBugs();
