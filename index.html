@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>🐛 抓虫大冒险</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=2">
 <style>
 .home-header{text-align:center;padding:8px 0}
 .home-header .bug-row{font-size:28px;letter-spacing:6px;margin-bottom:6px}
@@ -44,8 +44,6 @@
         <button class="rank-tab" data-rank="beetle">🪲独角仙</button>
         <button class="rank-tab" data-rank="butterfly">🦋蝴蝶</button>
         <button class="rank-tab" data-rank="cicada">🦗知了</button>
-        <button class="rank-tab" data-rank="spider">🕷️蜘蛛</button>
-        <button class="rank-tab" data-rank="dung">💩屎壳郎</button>
       </div>
       <div id="scoreList"><div class="empty">还没有成绩，先去抓虫吧！</div></div>
     </div>
@@ -59,7 +57,7 @@
 </main>
 
 <script>
-const BUG_NAMES = {grasshopper:'蚂蚱',mantis:'螳螂',beetle:'独角仙',butterfly:'蝴蝶',cicada:'知了',spider:'蜘蛛',dung:'屎壳郎'};
+const BUG_NAMES = {grasshopper:'蚂蚱',mantis:'螳螂',beetle:'独角仙',butterfly:'蝴蝶',cicada:'知了'};
 
 function renderScores(rankType) {
   const list = document.getElementById('scoreList');
