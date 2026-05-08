@@ -1357,24 +1357,80 @@ function drawRealPlayer() {
 function drawPlayer() {
   if (state.finish) return;
   const sz = 48;
+  const t = state.time;
+  const px = player.x, py = player.y;
+  
+  // 走路晃动
+  const walkBob = player.moving ? Math.sin(t * 8) * 2 : 0;
+  
   // 2.5D 投影
   ctx.fillStyle = 'rgba(0,0,0,0.2)';
   ctx.beginPath();
-  ctx.ellipse(player.x + 3, player.y + 5, sz * 0.35, sz * 0.1, 0, 0, 7);
-  ctx.fill();
-  // 抄子投影 (更远)
-  ctx.fillStyle = 'rgba(0,0,0,0.08)';
-  const d = player.dir;
-  ctx.beginPath();
-  ctx.ellipse(player.x + Math.cos(d) * 22 + 3, player.y + Math.sin(d) * 22 + 5, 8, 3, d, 0, 7);
+  ctx.ellipse(px + 2, py + 5 + walkBob * 0.3, sz * 0.32, sz * 0.1, 0, 0, 7);
   ctx.fill();
   
-  const img = state.assets['child'];
-  if (img && img.complete && img.naturalWidth > 0) {
-    ctx.drawImage(img, player.x - sz/2, player.y - sz/2, sz, sz);
-  } else {
-    drawSpriteFromCache('child', player.x, player.y, sz);
-  }
+  ctx.save();
+  ctx.translate(px, py + walkBob);
+  
+  // 鞋子
+  ctx.fillStyle = '#212121';
+  ctx.beginPath(); ctx.ellipse(-10, 30, 9, 4, 0, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(10, 30, 9, 4, 0, 0, 7); ctx.fill();
+  
+  // 裤子
+  ctx.fillStyle = '#37474F';
+  ctx.fillRect(-14, 6, 28, 24);
+  
+  // 上衣
+  ctx.fillStyle = '#4CAF50';
+  ctx.beginPath();
+  ctx.moveTo(0, -6); ctx.lineTo(-18, 8); ctx.lineTo(18, 8); ctx.closePath();
+  ctx.fill();
+  
+  // 手臂(带抄子)
+  ctx.fillStyle = '#f0d8b8';
+  ctx.fillRect(-22, 2, 8, 16);
+  ctx.fillRect(14, 2, 8, 16);
+  
+  // 抄子
+  const d = player.dir;
+  ctx.save();
+  ctx.translate(20, 8);
+  ctx.rotate(d + 0.3);
+  ctx.strokeStyle = '#8B4513'; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(24, -8); ctx.stroke();
+  ctx.strokeStyle = 'rgba(200,200,200,0.3)'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(28, -10, 8, 0, 7); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,0.04)'; ctx.fill();
+  ctx.restore();
+  
+  // 头
+  ctx.fillStyle = '#f0d8b8';
+  ctx.beginPath(); ctx.arc(0, -16, 16, 0, 7); ctx.fill();
+  
+  // 头发
+  ctx.fillStyle = '#4a2a0a';
+  ctx.beginPath(); ctx.arc(0, -18, 14, 3.14, 0); ctx.fill();
+  
+  // 草帽
+  ctx.fillStyle = '#d4a030';
+  ctx.beginPath(); ctx.ellipse(0, -28, 22, 5, 0, 0, 7); ctx.fill();
+  ctx.fillRect(-12, -34, 24, 7);
+  
+  // 眼睛 (跟随方向)
+  const eyeX = Math.cos(d) * 3;
+  ctx.fillStyle = '#333';
+  ctx.beginPath(); ctx.arc(-5 + eyeX, -17, 2, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.arc(5 + eyeX, -17, 2, 0, 7); ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(-4 + eyeX, -18, 0.8, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.arc(6 + eyeX, -18, 0.8, 0, 7); ctx.fill();
+  
+  // 微笑
+  ctx.strokeStyle = '#c08060'; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.arc(0, -11, 4, 0.1, 2.8); ctx.stroke();
+  
+  ctx.restore();
 }
 
 function drawFloats() {
