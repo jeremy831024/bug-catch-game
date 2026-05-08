@@ -1448,8 +1448,6 @@ function drawPlayer() {
   const walkBob = player.moving ? Math.sin(t * 8) * 2 : 0;
   
   // 检查是否撞树
-  const onTree = state.trees.some(t => Math.abs(Math.floor(newX/TILE) - t.tx) + Math.abs(Math.floor(newY/TILE) - t.ty) < 1);
-  if (onTree) { /* blocked by tree */ }
   
   // 2.5D 投影
   ctx.fillStyle = 'rgba(0,0,0,0.2)';
