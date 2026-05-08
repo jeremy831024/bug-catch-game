@@ -16,6 +16,9 @@
 .leaderboard h2{font-size:14px;margin-bottom:6px;text-align:center;opacity:.8}
 .leaderboard .empty{text-align:center;opacity:.6;padding:12px;font-size:14px}
 .score-row{display:flex;justify-content:space-between;padding:5px 10px;font-size:14px;opacity:.8}
+.rank-tab{padding:3px 10px;border-radius:8px;border:none;font-size:11px;cursor:pointer;background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);transition:.15s;font-family:inherit}
+.rank-tab.active{background:rgba(255,255,255,.14);color:#fff}
+.rank-tab:hover{background:rgba(255,255,255,.1)}
 </style>
 </head>
 <body>
@@ -33,7 +36,17 @@
     </div>
 
     <div class="leaderboard" id="leaderboard">
-      <h2>🏆 排行榜</h2>
+      <h2 style="font-size:13px;margin-bottom:6px;text-align:center;opacity:.6">🏆 排行榜</h2>
+      <div style="display:flex;gap:4px;margin-bottom:6px;justify-content:center;flex-wrap:wrap">
+        <button class="rank-tab active" data-rank="score">总分</button>
+        <button class="rank-tab" data-rank="grasshopper">🦗蚂蚱</button>
+        <button class="rank-tab" data-rank="mantis">🦟螳螂</button>
+        <button class="rank-tab" data-rank="beetle">🪲独角仙</button>
+        <button class="rank-tab" data-rank="butterfly">🦋蝴蝶</button>
+        <button class="rank-tab" data-rank="cicada">🦗知了</button>
+        <button class="rank-tab" data-rank="spider">🕷️蜘蛛</button>
+        <button class="rank-tab" data-rank="dung">💩屎壳郎</button>
+      </div>
       <div id="scoreList"><div class="empty">还没有成绩，先去抓虫吧！</div></div>
     </div>
 
@@ -46,25 +59,56 @@
 </main>
 
 <script>
-(function renderScores() {
+const BUG_NAMES = {grasshopper:'蚂蚱',mantis:'螳螂',beetle:'独角仙',butterfly:'蝴蝶',cicada:'知了',spider:'蜘蛛',dung:'屎壳郎'};
+
+function renderScores(rankType) {
   const list = document.getElementById('scoreList');
   try {
     let scores = JSON.parse(localStorage.getItem('bugRanks') || '[]');
-    // 如果没有任何成绩，显示提示
+    
     if (!scores.length) {
-      // 不显示空状态，直接显示demo
-      scores = [
-        {name:'🎮 先玩一局',score:0,bugs:{}}
-      ];
+      scores = [{name:'🎮 先玩一局',score:0,bugs:{}}];
     }
-    scores = scores.sort((a,b) => b.score - a.score).slice(0,5);
-    list.innerHTML = scores.map((s,i) => {
-      const name = s.name || '探险家';
-      const cnt = s.bugs ? Object.values(s.bugs).reduce((a,b)=>a+b,0) : 0;
-      return `<div class="score-row"><span>${i+1}. ${name}</span><span>${s.score}分 · ${cnt}只</span></div>`;
-    }).join('');
+    
+    let sorted;
+    if (rankType === 'score' || !rankType) {
+      // 总分排行
+      sorted = scores.sort((a,b) => b.score - a.score).slice(0,5);
+      list.innerHTML = sorted.map((s,i) => {
+        const name = s.name || '探险家';
+        const cnt = s.bugs ? Object.values(s.bugs).reduce((a,b)=>a+b,0) : 0;
+        return `<div class="score-row"><span>${i+1}. ${name}</span><span>${s.score}分 · ${cnt}只</span></div>`;
+      }).join('');
+    } else {
+      // 某类虫子捕获排行
+      const bugLabel = BUG_NAMES[rankType] || rankType;
+      sorted = scores.filter(s => s.bugs && s.bugs[rankType])
+        .sort((a,b) => (b.bugs[rankType]||0) - (a.bugs[rankType]||0))
+        .slice(0,5);
+      if (!sorted.length) {
+        list.innerHTML = '<div class="empty">还没有人抓到' + bugLabel + '</div>';
+        return;
+      }
+      list.innerHTML = sorted.map((s,i) => {
+        const name = s.name || '探险家';
+        const cnt = s.bugs[rankType] || 0;
+        return `<div class="score-row"><span>${i+1}. ${name}</span><span>${bugLabel} ×${cnt}</span></div>`;
+      }).join('');
+    }
   } catch(e) {}
-})();
+}
+
+// 排行榜Tab切换
+document.querySelectorAll('.rank-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.rank-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    renderScores(tab.dataset.rank);
+  });
+});
+
+// 默认显示总分排行
+renderScores('score');
 </script>
 </body>
 </html>
