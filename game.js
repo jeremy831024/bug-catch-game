@@ -1261,7 +1261,13 @@ function drawRealPlayer() {
 
 function drawPlayer() {
   if (state.finish) return;
-  drawSpriteFromCache('child', player.x, player.y, 48);
+  const sz = 48;
+  const img = state.assets['child'];
+  if (img && img.complete && img.naturalWidth > 0) {
+    ctx.drawImage(img, player.x - sz/2, player.y - sz/2, sz, sz);
+  } else {
+    drawSpriteFromCache('child', player.x, player.y, sz);
+  }
 }
 
 function drawFloats() {
@@ -1305,14 +1311,14 @@ function handleAssetLoaded(name, img) {
 function loadAssets() {
   initSprites();
   const files = {
-    child: "assets/child.png",
-    grasshopper: "assets/grasshopper.png",
-    mantis: "assets/mantis.png",
-    beetle: "assets/beetle.png",
-    butterfly: "assets/butterfly.png",
-    cicada: "assets/cicada.png",
-    spider: "assets/spider.png",
-    dung: "assets/dung.png",
+    child: "assets/child_small.png",
+    grasshopper: "assets/grasshopper_small.png",
+    mantis: "assets/mantis_small.png",
+    beetle: "assets/beetle_small.png",
+    butterfly: "assets/butterfly_small.png",
+    cicada: "assets/cicada_small.png",
+    spider: "assets/spider_small.png",
+    dung: "assets/dung_small.png",
     hole: "assets/hole.png",
   };
   for (const [name, src] of Object.entries(files)) {

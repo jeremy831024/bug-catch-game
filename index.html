@@ -35,7 +35,13 @@
 
     function readScores() {
       try {
-        return JSON.parse(localStorage.getItem("bugRanks") || "[]");
+        const current = JSON.parse(localStorage.getItem("bugCatchLeaderboard") || "[]");
+        const legacy = JSON.parse(localStorage.getItem("bugRanks") || "[]");
+        return [...current, ...legacy.map((item) => ({
+          score: item.score,
+          count: item.bugs ? Object.values(item.bugs).reduce((sum, value) => sum + value, 0) : 0,
+          date: item.date || item.time || Date.now(),
+        }))];
       } catch {
         return [];
       }
