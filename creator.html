@@ -95,59 +95,96 @@ transition:.2s;font-family:inherit;
         <label>🧢 帽子</label>
         <div class="style-grid" data-category="hat">
           <div class="style-option active" data-value="none">无</div>
+          <div class="style-option" data-value="animal">动物帽 🐱</div>
+          <div class="style-option" data-value="crown">王冠 👑</div>
           <div class="style-option" data-value="straw">草帽 🧑‍🌾</div>
-          <div class="style-option" data-value="cap">棒球帽 🧢</div>
-          <div class="style-option" data-value="explorer">探险帽 🎩</div>
+          <div class="style-option" data-value="helmet">头盔 ⛑️</div>
         </div>
       </div>
       <div class="option-group">
-        <label>👧 发型</label>
-        <div class="style-grid" data-category="hair">
-          <div class="style-option active" data-value="short">短发</div>
-          <div class="style-option" data-value="long">长发 🦋</div>
-          <div class="style-option" data-value="pigtail">辫子 🎀</div>
-          <div class="style-option" data-value="curly">卷发</div>
+        <label>👦 脸型</label>
+        <div class="style-grid" data-category="face">
+          <div class="style-option active" data-value="cute">可爱 😊</div>
+          <div class="style-option" data-value="cool">酷酷 😎</div>
+          <div class="style-option" data-value="bigeyes">大眼睛 👁️</div>
+          <div class="style-option" data-value="freckles">小雀斑</div>
+          <div class="style-option" data-value="glasses">戴眼镜 👓</div>
+        </div>
+        <div style="margin-top:4px">
+          <label style="font-size:12px;opacity:.5">头发颜色</label>
+          <div class="color-grid" data-category="hairColor" style="margin-top:3px">
+            <div class="color-swatch active" data-color="#4a2a0a" style="background:#4a2a0a"></div>
+            <div class="color-swatch" data-color="#2a1a00" style="background:#2a1a00"></div>
+            <div class="color-swatch" data-color="#d4a030" style="background:#d4a030"></div>
+            <div class="color-swatch" data-color="#8B4513" style="background:#8B4513"></div>
+            <div class="color-swatch" data-color="#f44336" style="background:#f44336"></div>
+            <div class="color-swatch" data-color="#E0E0E0" style="background:#E0E0E0;border-color:rgba(255,255,255,.2)"></div>
+          </div>
         </div>
       </div>
       <div class="option-group">
-        <label>👕 上衣颜色</label>
-        <div class="color-grid" data-category="shirt">
-          <div class="color-swatch active" data-color="#4CAF50" style="background:#4CAF50"></div>
-          <div class="color-swatch" data-color="#2196F3" style="background:#2196F3"></div>
-          <div class="color-swatch" data-color="#f44336" style="background:#f44336"></div>
-          <div class="color-swatch" data-color="#FF9800" style="background:#FF9800"></div>
-          <div class="color-swatch" data-color="#9C27B0" style="background:#9C27B0"></div>
-          <div class="color-swatch" data-color="#FFEB3B" style="background:#FFEB3B"></div>
-          <div class="color-swatch" data-color="#795548" style="background:#795548"></div>
-          <div class="color-swatch" data-color="#607D8B" style="background:#607D8B"></div>
-          <div class="color-swatch" data-color="#E91E63" style="background:#E91E63"></div>
-          <div class="color-swatch" data-color="#00BCD4" style="background:#00BCD4"></div>
-          <div class="color-swatch" data-color="#FF5722" style="background:#FF5722"></div>
-          <div class="color-swatch" data-color="#8BC34A" style="background:#8BC34A"></div>
+        <label>👕 上衣款式</label>
+        <div class="style-grid" data-category="topStyle">
+          <div class="style-option active" data-value="tshirt">T恤</div>
+          <div class="style-option" data-value="striped">条纹</div>
+          <div class="style-option" data-value="hoodie">连帽衫</div>
+          <div class="style-option" data-value="plaid">格子</div>
+          <div class="style-option" data-value="hero">超级英雄 🦸</div>
+        </div>
+        <div style="margin-top:4px">
+          <label style="font-size:12px;opacity:.5">上衣颜色</label>
+          <div class="color-grid" data-category="shirtColor" style="margin-top:3px">
+            <div class="color-swatch active" data-color="#4CAF50" style="background:#4CAF50"></div>
+            <div class="color-swatch" data-color="#2196F3" style="background:#2196F3"></div>
+            <div class="color-swatch" data-color="#f44336" style="background:#f44336"></div>
+            <div class="color-swatch" data-color="#FF9800" style="background:#FF9800"></div>
+            <div class="color-swatch" data-color="#9C27B0" style="background:#9C27B0"></div>
+            <div class="color-swatch" data-color="#FFEB3B" style="background:#FFEB3B"></div>
+            <div class="color-swatch" data-color="#E91E63" style="background:#E91E63"></div>
+            <div class="color-swatch" data-color="#00BCD4" style="background:#00BCD4"></div>
+          </div>
         </div>
       </div>
       <div class="option-group">
-        <label>👖 裤子颜色</label>
-        <div class="color-grid" data-category="pants">
-          <div class="color-swatch active" data-color="#37474F" style="background:#37474F"></div>
-          <div class="color-swatch" data-color="#1565C0" style="background:#1565C0"></div>
-          <div class="color-swatch" data-color="#2E7D32" style="background:#2E7D32"></div>
-          <div class="color-swatch" data-color="#795548" style="background:#795548"></div>
-          <div class="color-swatch" data-color="#F44336" style="background:#F44336"></div>
-          <div class="color-swatch" data-color="#FF8F00" style="background:#FF8F00"></div>
-          <div class="color-swatch" data-color="#5D4037" style="background:#5D4037"></div>
-          <div class="color-swatch" data-color="#455A64" style="background:#455A64"></div>
+        <label>👖 下装款式</label>
+        <div class="style-grid" data-category="bottomStyle">
+          <div class="style-option active" data-value="shorts">短裤</div>
+          <div class="style-option" data-value="pants">长裤</div>
+          <div class="style-option" data-value="skirt">裙子 👗</div>
+          <div class="style-option" data-value="overalls">背带裤</div>
+          <div class="style-option" data-value="cargo">工装裤</div>
+        </div>
+        <div style="margin-top:4px">
+          <label style="font-size:12px;opacity:.5">下装颜色</label>
+          <div class="color-grid" data-category="pantsColor" style="margin-top:3px">
+            <div class="color-swatch active" data-color="#37474F" style="background:#37474F"></div>
+            <div class="color-swatch" data-color="#1565C0" style="background:#1565C0"></div>
+            <div class="color-swatch" data-color="#2E7D32" style="background:#2E7D32"></div>
+            <div class="color-swatch" data-color="#795548" style="background:#795548"></div>
+            <div class="color-swatch" data-color="#F44336" style="background:#F44336"></div>
+            <div class="color-swatch" data-color="#FF8F00" style="background:#FF8F00"></div>
+          </div>
         </div>
       </div>
       <div class="option-group">
-        <label>👟 鞋子颜色</label>
-        <div class="color-grid" data-category="shoes">
-          <div class="color-swatch active" data-color="#212121" style="background:#212121"></div>
-          <div class="color-swatch" data-color="#FFFFFF" style="background:#FFFFFF;border-color:rgba(255,255,255,.2)"></div>
-          <div class="color-swatch" data-color="#F44336" style="background:#F44336"></div>
-          <div class="color-swatch" data-color="#2196F3" style="background:#2196F3"></div>
-          <div class="color-swatch" data-color="#4CAF50" style="background:#4CAF50"></div>
-          <div class="color-swatch" data-color="#FF9800" style="background:#FF9800"></div>
+        <label>👟 鞋子款式</label>
+        <div class="style-grid" data-category="shoeStyle">
+          <div class="style-option active" data-value="sneakers">运动鞋 🏃</div>
+          <div class="style-option" data-value="boots">靴子 🥾</div>
+          <div class="style-option" data-value="sandals">凉鞋 🩴</div>
+          <div class="style-option" data-value="rainboots">雨鞋 🌧️</div>
+          <div class="style-option" data-value="canvas">帆布鞋 👟</div>
+        </div>
+        <div style="margin-top:4px">
+          <label style="font-size:12px;opacity:.5">鞋子颜色</label>
+          <div class="color-grid" data-category="shoesColor" style="margin-top:3px">
+            <div class="color-swatch active" data-color="#212121" style="background:#212121"></div>
+            <div class="color-swatch" data-color="#FFFFFF" style="background:#FFFFFF;border-color:rgba(255,255,255,.2)"></div>
+            <div class="color-swatch" data-color="#F44336" style="background:#F44336"></div>
+            <div class="color-swatch" data-color="#2196F3" style="background:#2196F3"></div>
+            <div class="color-swatch" data-color="#4CAF50" style="background:#4CAF50"></div>
+            <div class="color-swatch" data-color="#FF9800" style="background:#FF9800"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -161,131 +198,236 @@ transition:.2s;font-family:inherit;
 // ── 角色状态 ──
 const char = {
   hat: 'none',
-  hair: 'short',
-  shirt: '#4CAF50',
-  pants: '#37474F',
-  shoes: '#212121',
+  face: 'cute',
+  hairColor: '#4a2a0a',
+  topStyle: 'tshirt',
+  shirtColor: '#4CAF50',
+  bottomStyle: 'shorts',
+  pantsColor: '#37474F',
+  shoeStyle: 'sneakers',
+  shoesColor: '#212121',
   name: '',
 };
 
 const pc = document.getElementById('previewCanvas');
 const pctx = pc.getContext('2d');
 
-// ── 帽子绘制函数 ──
 function drawHat(ctx, hatType) {
   ctx.save();
-  if (hatType === 'straw') {
+  if (hatType === 'none') { /* nothing */ }
+  else if (hatType === 'animal') {
+    // 动物耳朵帽
+    ctx.fillStyle = '#8B4513'; ctx.strokeStyle = '#6B3410'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(0, -50, 26, 7, 0, 0, 7); ctx.fill(); ctx.stroke();
+    // 耳朵
+    ctx.fillStyle = '#8B4513';
+    ctx.beginPath(); ctx.ellipse(-16, -62, 9, 12, -0.2, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(16, -62, 9, 12, 0.2, 0, 7); ctx.fill();
+    ctx.fillStyle = '#ffb0b0';
+    ctx.beginPath(); ctx.ellipse(-16, -62, 5, 8, -0.2, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(16, -62, 5, 8, 0.2, 0, 7); ctx.fill();
+    // 胡须
+    ctx.strokeStyle = '#333'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(-8, -46); ctx.lineTo(-20, -50); ctx.moveTo(8, -46); ctx.lineTo(20, -50); ctx.stroke();
+  } else if (hatType === 'crown') {
+    ctx.fillStyle = '#FFD700'; ctx.strokeStyle = '#DAA520'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(-24, -46); ctx.lineTo(-20, -64); ctx.lineTo(-12, -54);
+    ctx.lineTo(0, -68); ctx.lineTo(12, -54); ctx.lineTo(20, -64); ctx.lineTo(24, -46); ctx.closePath(); ctx.fill(); ctx.stroke();
+    // 宝石
+    ctx.fillStyle = '#2196F3'; ctx.beginPath(); ctx.arc(-12, -54, 3, 0, 7); ctx.fill();
+    ctx.fillStyle = '#f44336'; ctx.beginPath(); ctx.arc(0, -58, 3, 0, 7); ctx.fill();
+    ctx.fillStyle = '#4CAF50'; ctx.beginPath(); ctx.arc(12, -54, 3, 0, 7); ctx.fill();
+  } else if (hatType === 'straw') {
     ctx.fillStyle = '#d4a030'; ctx.strokeStyle = '#b8891a'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.ellipse(0, -52, 34, 8, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.beginPath(); ctx.ellipse(0, -60, 16, 12, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-  } else if (hatType === 'cap') {
-    ctx.fillStyle = '#e53935'; ctx.strokeStyle = '#c62828'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.ellipse(0, -50, 30, 7, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.beginPath(); ctx.ellipse(0, -58, 18, 14, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    // 帽舌
-    ctx.fillStyle = '#c62828';
-    ctx.beginPath(); ctx.ellipse(28, -52, 14, 5, -0.3, 0, Math.PI * 2); ctx.fill();
-  } else if (hatType === 'explorer') {
-    ctx.fillStyle = '#6d8a4a'; ctx.strokeStyle = '#5a703a'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.ellipse(0, -50, 32, 7, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.beginPath(); ctx.ellipse(0, -56, 14, 10, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(0, -50, 30, 7, 0, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(0, -58, 14, 10, 0, 0, 7); ctx.fill(); ctx.stroke();
+  } else if (hatType === 'helmet') {
+    ctx.fillStyle = '#546E7A'; ctx.strokeStyle = '#455A64'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(0, -48, 24, 7, 0, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(0, -54, 20, 18, 0, 0, 7); ctx.fill(); ctx.stroke();
+    // 护目镜
+    ctx.strokeStyle = '#FF9800'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(-8, -50, 10, 8, 0, 0, 7); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(8, -50, 10, 8, 0, 0, 7); ctx.stroke();
   }
   ctx.restore();
 }
 
-// ── 发型绘制 ──
-function drawHair(ctx, hairType) {
+function drawFace(ctx, faceType, hairColor) {
   ctx.save();
-  ctx.fillStyle = '#4a2a0a';
-  if (hairType === 'short') {
-    ctx.beginPath();
-    ctx.arc(0, -26, 16, Math.PI, 0); ctx.fill();
-  } else if (hairType === 'long') {
-    ctx.beginPath(); ctx.arc(0, -26, 17, Math.PI, 0); ctx.fill();
-    ctx.fillRect(-16, -26, 6, 24); ctx.fillRect(10, -26, 6, 24);
-  } else if (hairType === 'pigtail') {
-    ctx.beginPath(); ctx.arc(0, -26, 17, Math.PI, 0); ctx.fill();
-    ctx.fillRect(-18, -20, 6, 18); ctx.fillRect(12, -20, 6, 18);
-    ctx.fillStyle = '#e91e63';
-    ctx.beginPath(); ctx.arc(-15, -4, 4, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(15, -4, 4, 0, Math.PI * 2); ctx.fill();
-  } else if (hairType === 'curly') {
-    for (let i = -14; i <= 14; i += 6) {
-      ctx.beginPath();
-      ctx.arc(i, -32 - Math.abs(i) * 0.3, 6, 0, Math.PI * 2); ctx.fill();
-    }
+  // 头发先画 (at back)
+  ctx.fillStyle = hairColor;
+  ctx.beginPath(); ctx.arc(0, -26, 17, Math.PI, 0); ctx.fill();
+  
+  // 脸型/表情
+  if (faceType === 'cute') {
+    // 大眼睛微笑
+    ctx.fillStyle = '#333'; ctx.beginPath(); ctx.arc(-7, -28, 3, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.arc(7, -28, 3, 0, 7); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(-6, -30, 1.2, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.arc(8, -30, 1.2, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#c08060'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(0, -16, 5, 0.15, 2.9); ctx.stroke();
+    // 腮红
+    ctx.fillStyle = 'rgba(255,150,150,0.25)'; ctx.beginPath(); ctx.arc(-11, -22, 4, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.arc(11, -22, 4, 0, 7); ctx.fill();
+  } else if (faceType === 'cool') {
+    // 眯眼酷笑
+    ctx.strokeStyle = '#333'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(-7, -27, 4, 0.1, 3); ctx.stroke();
+    ctx.beginPath(); ctx.arc(7, -27, 4, 0, 3.1); ctx.stroke();
+    ctx.strokeStyle = '#c08060'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(0, -16, 5, 0, 3); ctx.stroke();
+    // 眉毛
+    ctx.strokeStyle = '#333'; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(-12, -34); ctx.lineTo(-4, -33); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(12, -34); ctx.lineTo(4, -33); ctx.stroke();
+  } else if (faceType === 'bigeyes') {
+    // 超级大眼睛
+    ctx.fillStyle = '#333'; ctx.beginPath(); ctx.arc(-7, -27, 4, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.arc(7, -27, 4, 0, 7); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(-6, -29, 2, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.arc(8, -29, 2, 0, 7); ctx.fill();
+    ctx.fillStyle = '#ffd700'; ctx.beginPath(); ctx.arc(-5, -30, 0.8, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.arc(9, -30, 0.8, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#c08060'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(0, -16, 6, 0.1, 2.9); ctx.stroke();
+  } else if (faceType === 'freckles') {
+    ctx.fillStyle = '#333'; ctx.beginPath(); ctx.arc(-7, -28, 2.5, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.arc(7, -28, 2.5, 0, 7); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(-6, -30, 1, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.arc(8, -30, 1, 0, 7); ctx.fill();
+    // 雀斑
+    ctx.fillStyle = '#8B4513'; ctx.globalAlpha = 0.3;
+    ctx.beginPath(); ctx.arc(-9, -22, 1, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.arc(-5, -21, 1, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.arc(9, -22, 1, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.arc(5, -21, 1, 0, 7); ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = '#c08060'; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.arc(0, -16, 4, 0.1, 2.8); ctx.stroke();
+  } else if (faceType === 'glasses') {
+    ctx.fillStyle = '#333'; ctx.beginPath(); ctx.arc(-7, -27, 2.5, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.arc(7, -27, 2.5, 0, 7); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(-6, -29, 1, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.arc(8, -29, 1, 0, 7); ctx.fill();
+    // 眼镜框
+    ctx.strokeStyle = '#333'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.ellipse(-7, -27, 8, 6, 0, 0, 7); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(7, -27, 8, 6, 0, 0, 7); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(1, -27); ctx.lineTo(-1, -27); ctx.stroke();
+    ctx.strokeStyle = '#c08060'; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.arc(0, -16, 4, 0.1, 2.8); ctx.stroke();
   }
   ctx.restore();
 }
 
-// ── 完整绘制 ──
 function renderPreview() {
   const ctx = pctx;
-  const cx = 120, cy = 140;
   ctx.clearRect(0, 0, 240, 240);
-  
-  // 背景光晕
   const grd = ctx.createRadialGradient(120, 120, 0, 120, 120, 120);
   grd.addColorStop(0, 'rgba(100,200,100,0.08)'); grd.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = grd; ctx.fillRect(0, 0, 240, 240);
-  
-  ctx.save(); ctx.translate(cx, cy);
+  ctx.save(); ctx.translate(120, 140);
   
   // 影子
   ctx.fillStyle = 'rgba(0,0,0,0.12)';
-  ctx.beginPath(); ctx.ellipse(0, 50, 36, 6, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(0, 50, 36, 6, 0, 0, 7); ctx.fill();
   
   // 鞋子
-  ctx.fillStyle = char.shoes;
-  ctx.beginPath(); ctx.ellipse(-12, 48, 12, 5, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.ellipse(12, 48, 12, 5, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = char.shoesColor;
+  if (char.shoeStyle === 'sneakers') {
+    ctx.beginPath(); ctx.ellipse(-11, 48, 12, 5, 0, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(11, 48, 12, 5, 0, 0, 7); ctx.fill();
+  } else if (char.shoeStyle === 'boots') {
+    ctx.fillRect(-20, 44, 16, 8); ctx.fillRect(4, 44, 16, 8);
+  } else if (char.shoeStyle === 'sandals') {
+    ctx.fillRect(-16, 46, 10, 4); ctx.fillRect(6, 46, 10, 4);
+    ctx.strokeStyle = char.shoesColor; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(-11, 46); ctx.lineTo(-11, 40); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(11, 46); ctx.lineTo(11, 40); ctx.stroke();
+  } else if (char.shoeStyle === 'rainboots') {
+    ctx.fillRect(-20, 42, 18, 10); ctx.fillRect(2, 42, 18, 10);
+  } else {
+    ctx.beginPath(); ctx.ellipse(-11, 48, 11, 5, 0, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(11, 48, 11, 5, 0, 0, 7); ctx.fill();
+  }
   
-  // 裤子
-  ctx.fillStyle = char.pants;
-  ctx.fillRect(-16, 14, 32, 34);
-  ctx.fillRect(-16, 14, 14, 34); ctx.fillRect(2, 14, 14, 34);
+  // 下装
+  ctx.fillStyle = char.pantsColor;
+  if (char.bottomStyle === 'shorts') {
+    ctx.fillRect(-15, 14, 30, 22);
+    ctx.fillRect(-16, 30, 14, 10); ctx.fillRect(2, 30, 14, 10);
+  } else if (char.bottomStyle === 'pants') {
+    ctx.fillRect(-15, 14, 30, 34);
+    ctx.fillRect(-16, 14, 14, 34); ctx.fillRect(2, 14, 14, 34);
+  } else if (char.bottomStyle === 'skirt') {
+    ctx.beginPath(); ctx.moveTo(-20, 14); ctx.lineTo(20, 14); ctx.lineTo(28, 40); ctx.lineTo(-28, 40); ctx.closePath(); ctx.fill();
+    ctx.fillRect(-16, 14, 14, 34); ctx.fillRect(2, 14, 14, 34);
+  } else if (char.bottomStyle === 'overalls') {
+    ctx.fillRect(-15, 14, 30, 34);
+    // 背带
+    ctx.fillStyle = char.shirtColor; ctx.fillRect(-14, 8, 6, 14); ctx.fillRect(8, 8, 6, 14);
+  } else { // cargo
+    ctx.fillRect(-15, 14, 30, 34);
+    ctx.fillRect(-16, 14, 14, 34); ctx.fillRect(2, 14, 14, 34);
+    ctx.strokeStyle = 'rgba(0,0,0,0.15)'; ctx.lineWidth = 1;
+    ctx.strokeRect(-16, 22, 14, 10); ctx.strokeRect(2, 22, 14, 10);
+  }
   
-  // 身体 (上衣)
-  ctx.fillStyle = char.shirt;
-  ctx.beginPath();
-  ctx.moveTo(0, -8); ctx.lineTo(-22, 14); ctx.lineTo(-20, 16); ctx.lineTo(20, 16); ctx.lineTo(22, 14); ctx.closePath();
-  ctx.fill();
-  // 衣领
-  ctx.fillStyle = 'rgba(0,0,0,0.08)';
-  ctx.beginPath(); ctx.moveTo(-4, -6); ctx.lineTo(0, 4); ctx.lineTo(4, -6); ctx.closePath(); ctx.fill();
+  // 上衣
+  ctx.fillStyle = char.shirtColor;
+  if (char.topStyle === 'tshirt') {
+    ctx.beginPath();
+    ctx.moveTo(0, -8); ctx.lineTo(-20, 14); ctx.lineTo(-18, 16); ctx.lineTo(18, 16); ctx.lineTo(20, 14); ctx.closePath(); ctx.fill();
+  } else if (char.topStyle === 'striped') {
+    ctx.beginPath();
+    ctx.moveTo(0, -8); ctx.lineTo(-20, 14); ctx.lineTo(-18, 16); ctx.lineTo(18, 16); ctx.lineTo(20, 14); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 3;
+    for (let y = -2; y < 14; y += 5) { ctx.beginPath(); ctx.moveTo(-18 - y*0.2, y); ctx.lineTo(18 + y*0.2, y); ctx.stroke(); }
+  } else if (char.topStyle === 'hoodie') {
+    ctx.beginPath();
+    ctx.moveTo(0, -12); ctx.lineTo(-22, 14); ctx.lineTo(-20, 17); ctx.lineTo(20, 17); ctx.lineTo(22, 14); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,0.1)';
+    ctx.beginPath(); ctx.ellipse(0, -4, 6, 8, 0, 0, 7); ctx.fill();
+  } else if (char.topStyle === 'plaid') {
+    ctx.beginPath();
+    ctx.moveTo(0, -8); ctx.lineTo(-20, 14); ctx.lineTo(-18, 16); ctx.lineTo(18, 16); ctx.lineTo(20, 14); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 2;
+    for (let i = -3; i < 6; i++) { ctx.beginPath(); ctx.moveTo(-16, i*4); ctx.lineTo(16, i*4); ctx.stroke(); }
+    for (let i = -3; i < 4; i++) { ctx.beginPath(); ctx.moveTo(i*6, 0); ctx.lineTo(i*6, 14); ctx.stroke(); }
+  } else { // hero
+    ctx.beginPath();
+    ctx.moveTo(0, -10); ctx.lineTo(-20, 14); ctx.lineTo(-18, 16); ctx.lineTo(18, 16); ctx.lineTo(20, 14); ctx.closePath(); ctx.fill();
+    // 英雄标志
+    ctx.fillStyle = '#FFD700';
+    ctx.beginPath(); ctx.arc(0, 0, 6, 0, 7); ctx.fill();
+    ctx.fillStyle = char.shirtColor;
+    ctx.beginPath(); ctx.arc(0, 0, 4, 0, 7); ctx.fill();
+    ctx.fillStyle = '#FFD700';
+    ctx.font = '6px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('★', 0, 2);
+  }
   
   // 手臂
   ctx.fillStyle = '#f0d8b8';
-  ctx.fillRect(-28, 6, 10, 22);
-  ctx.fillRect(18, 6, 10, 22);
+  ctx.fillRect(-26, 6, 9, 20); ctx.fillRect(17, 6, 9, 20);
   
-  // 头
+  // 头 (base)
   ctx.fillStyle = '#f0d8b8';
-  ctx.beginPath(); ctx.arc(0, -26, 20, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(0, -26, 20, 0, 7); ctx.fill();
   
-  // 头发 (在帽子之前)
-  drawHair(ctx, char.hair);
+  // 脸+发型
+  drawFace(ctx, char.face, char.hairColor);
   
   // 帽子
   drawHat(ctx, char.hat);
   
-  // 眼睛
-  ctx.fillStyle = '#333';
-  ctx.beginPath(); ctx.arc(-8, -28, 2.5, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(8, -28, 2.5, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#fff';
-  ctx.beginPath(); ctx.arc(-7, -30, 1, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(9, -30, 1, 0, Math.PI * 2); ctx.fill();
-  
-  // 嘴 (微笑)
-  ctx.strokeStyle = '#c08060'; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.arc(0, -18, 6, 0.1, Math.PI - 0.1); ctx.stroke();
-  
-  // 抄子 (装饰)
+  // 抄子
   ctx.strokeStyle = '#8B4513'; ctx.lineWidth = 2.5;
-  ctx.beginPath(); ctx.moveTo(32, 14); ctx.lineTo(52, -6); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(28, 12); ctx.lineTo(50, -8); ctx.stroke();
   ctx.strokeStyle = 'rgba(200,200,200,0.3)'; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.arc(56, -10, 9, 0, Math.PI * 2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(54, -12, 9, 0, 7); ctx.stroke();
   ctx.fillStyle = 'rgba(255,255,255,0.04)'; ctx.fill();
   
   ctx.restore();
@@ -324,10 +466,8 @@ nameInput.addEventListener('input', () => {
 document.getElementById('startBtn').addEventListener('click', () => {
   const name = nameInput.value.trim() || '小探险家';
   char.name = name;
-  // 保存角色数据
   localStorage.setItem('selectedChar', JSON.stringify(char));
   localStorage.setItem('selectedCharName', name);
-  // 跳转游戏
   window.location.href = 'game.html';
 });
 
