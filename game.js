@@ -23,6 +23,7 @@ try {
 // 保存玩家名到排行榜用
 const SAVE_NAME = playerName;
 
+let camera = { x: 0, y: 0 }; // CAMERA_FIX
 // ── 加载系统 ──
 let loadingState = { total: 0, loaded: 0, errors: 0, ready: false };
 const LOADING_IMAGES = [];
@@ -1497,6 +1498,12 @@ function drawFloats() {
   }
 }
 
+function updateCamera() {
+  camera.x = player.x - 480;
+  camera.y = player.y - 320;
+  if (WIDTH > 960) camera.x = Math.max(0, Math.min(WIDTH - 960, camera.x));
+  if (HEIGHT > 640) camera.y = Math.max(0, Math.min(HEIGHT - 640, camera.y));
+}
 function render(time) {
   updateCamera();
   ctx.clearRect(0, 0, WIDTH, HEIGHT);
