@@ -1525,14 +1525,30 @@ function render(time) {
 
 function drawMinimap() {
   const mmW = 140, mmH = Math.round(mmW * 1088 / 1600);
-  const mx = 960 - mmW - 10, my = 10;
-  ctx.fillStyle = 'rgba(0,0,0,0.45)';
+  const mx = 960 - mmW - 10, my = 640 - mmH - 10;  // 屏幕右下角
+  
+  // 根据玩家位置计算透明度 (玩家靠近时淡出)
+  const px = player.x - camera.x, py = player.y - camera.y;  // 玩家在屏幕上的坐标
+  const distToMM = Math.hypot(px - (mx + mmW/2), py - (my + mmH/2));
+  let alpha = Math.min(1, Math.max(0.05, (distToMM - 60) / 120));  // 60px内淡出, 180px外全显
+  // 平滑过渡
+  if (!drawMinimap._lastAlpha) drawMinimap._lastAlpha = 1;
+  drawMinimap._lastAlpha += (alpha - drawMinimap._lastAlpha) * 0.1;
+  alpha = drawMinimap._lastAlpha;
+  
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  
+  // 背景
+  ctx.fillStyle = 'rgba(0,0,0,0.5)';
   ctx.beginPath();
   if (ctx.roundRect) { ctx.roundRect(mx - 4, my - 4, mmW + 8, mmH + 8, 8); }
   else { ctx.rect(mx - 4, my - 4, mmW + 8, mmH + 8); }
   ctx.fill();
   ctx.save();
   ctx.beginPath(); ctx.rect(mx, my, mmW, mmH); ctx.clip();
+  
+  // 缩略地图
   const sx = mmW / 1600, sy = mmH / 1088;
   for (let ty = 0; ty < 34; ty++) {
     for (let tx = 0; tx < 50; tx++) {
@@ -1545,12 +1561,13 @@ function drawMinimap() {
     }
   }
   // 视野框
-  ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.lineWidth = 1;
+  ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 1;
   ctx.strokeRect(mx + camera.x * sx, my + camera.y * sy, 960 * sx, 640 * sy);
-  // 玩家
+  // 玩家点
   ctx.fillStyle = '#ffd700';
   ctx.beginPath(); ctx.arc(mx + player.x * sx, my + player.y * sy, 3, 0, 7); ctx.fill();
-    ctx.restore();
+  
+  ctx.restore();
   ctx.restore();
 }
 
