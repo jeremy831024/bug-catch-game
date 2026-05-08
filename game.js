@@ -102,56 +102,6 @@ const ctx = canvas.getContext("2d");
 // ═══════════════════════════════════════
 // 加载系统
 // ═══════════════════════════════════════
-let loadingState = { total: 0, loaded: 0, errors: 0, ready: false };
-let LOADING_IMAGES = [];
-
-function trackImageLoad(img, label) {
-  loadingState.total++;
-  LOADING_IMAGES.push(img);
-  const onDone = () => { loadingState.loaded++; drawLoadingScreen(); };
-  const onError = () => { loadingState.loaded++; loadingState.errors++; drawLoadingScreen(); };
-  img.addEventListener('load', onDone, { once: true });
-  img.addEventListener('error', onError, { once: true });
-  if (img.complete && img.naturalWidth > 0) { setTimeout(onDone, 0); }
-}
-
-function drawLoadingScreen() {
-  const pct = loadingState.total > 0 ? Math.round(loadingState.loaded / loadingState.total * 100) : 0;
-  ctx.fillStyle = '#1a2a1a'; ctx.fillRect(0, 0, 960, 640);
-  ctx.fillStyle = '#fff';
-  ctx.font = 'bold 28px sans-serif'; ctx.textAlign = 'center';
-  ctx.fillText('🐛 抓虫大冒险', 480, 260);
-  ctx.fillStyle = 'rgba(255,255,255,0.1)';
-  if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(360, 310, 240, 20, 10); ctx.fill(); }
-  else { ctx.fillRect(360, 310, 240, 20); }
-  if (pct > 0) {
-    const g = ctx.createLinearGradient(360, 0, 600, 0);
-    g.addColorStop(0, '#4caf50'); g.addColorStop(1, '#8bc34a');
-    ctx.fillStyle = g;
-    if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(360, 310, 240 * pct / 100, 20, 10); ctx.fill(); }
-    else { ctx.fillRect(360, 310, 240 * pct / 100, 20); }
-  }
-  ctx.fillStyle = '#fff'; ctx.font = '14px sans-serif';
-  const et = loadingState.errors > 0 ? ` (${loadingState.errors}个加载失败)` : '';
-  ctx.fillText(`加载中 ${pct}%${et}`, 480, 350);
-}
-
-function checkAllLoaded() {
-  if (loadingState.loaded >= loadingState.total) {
-    loadingState.ready = true;
-    drawLoadingScreen();
-  }
-}
-
-// 摄像机
-let camera = { x: 0, y: 0 };
-function updateCamera() {
-  camera.x = player.x - 480;
-  camera.y = player.y - 320;
-  camera.x = Math.max(0, Math.min(1600 - 960, camera.x));
-  camera.y = Math.max(0, Math.min(1088 - 640, camera.y));
-}
-
 const ui = {
   score: document.getElementById("scoreDisplay"),
   staminaBar: document.getElementById("staminaBar"),
@@ -1725,7 +1675,15 @@ function initGame() {
   spawnBugs();
   loadAssets();
   ui.poisonWrap.style.display = "none";
-  requestAnimationFrame(loop);
+  // 等待加载完成后启动
+  const checkInterval = setInterval(() => {
+    if (loadingState.ready || (loadingState.total > 0 && loadingState.loaded >= loadingState.total)) {
+      loadingState.ready = true;
+      clearInterval(checkInterval);
+      drawLoadingScreen();
+      setTimeout(() => requestAnimationFrame(loop), 500);
+    }
+  }, 200);
 }
 
 window.generateAssets = generateAssets;
