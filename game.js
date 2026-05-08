@@ -291,8 +291,16 @@ function grassCandidates() {
   return cells;
 }
 
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 function createBurrows() {
-  const candidates = grassCandidates();
+  const candidates = shuffle(grassCandidates());
   const used = new Set();
   const burrowCount = randInt(5, 8);
   const connectedCount = randInt(2, 3);
