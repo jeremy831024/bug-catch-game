@@ -98,6 +98,60 @@ const VIEW_H = 640;
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+
+// ═══════════════════════════════════════
+// 加载系统
+// ═══════════════════════════════════════
+let loadingState = { total: 0, loaded: 0, errors: 0, ready: false };
+let LOADING_IMAGES = [];
+
+function trackImageLoad(img, label) {
+  loadingState.total++;
+  LOADING_IMAGES.push(img);
+  const onDone = () => { loadingState.loaded++; drawLoadingScreen(); };
+  const onError = () => { loadingState.loaded++; loadingState.errors++; drawLoadingScreen(); };
+  img.addEventListener('load', onDone, { once: true });
+  img.addEventListener('error', onError, { once: true });
+  if (img.complete && img.naturalWidth > 0) { setTimeout(onDone, 0); }
+}
+
+function drawLoadingScreen() {
+  const pct = loadingState.total > 0 ? Math.round(loadingState.loaded / loadingState.total * 100) : 0;
+  ctx.fillStyle = '#1a2a1a'; ctx.fillRect(0, 0, 960, 640);
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 28px sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText('🐛 抓虫大冒险', 480, 260);
+  ctx.fillStyle = 'rgba(255,255,255,0.1)';
+  if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(360, 310, 240, 20, 10); ctx.fill(); }
+  else { ctx.fillRect(360, 310, 240, 20); }
+  if (pct > 0) {
+    const g = ctx.createLinearGradient(360, 0, 600, 0);
+    g.addColorStop(0, '#4caf50'); g.addColorStop(1, '#8bc34a');
+    ctx.fillStyle = g;
+    if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(360, 310, 240 * pct / 100, 20, 10); ctx.fill(); }
+    else { ctx.fillRect(360, 310, 240 * pct / 100, 20); }
+  }
+  ctx.fillStyle = '#fff'; ctx.font = '14px sans-serif';
+  const et = loadingState.errors > 0 ? ` (${loadingState.errors}个加载失败)` : '';
+  ctx.fillText(`加载中 ${pct}%${et}`, 480, 350);
+}
+
+function checkAllLoaded() {
+  if (loadingState.loaded >= loadingState.total) {
+    loadingState.ready = true;
+    drawLoadingScreen();
+  }
+}
+
+// 摄像机
+let camera = { x: 0, y: 0 };
+function updateCamera() {
+  camera.x = player.x - 480;
+  camera.y = player.y - 320;
+  camera.x = Math.max(0, Math.min(1600 - 960, camera.x));
+  camera.y = Math.max(0, Math.min(1088 - 640, camera.y));
+}
+
 const ui = {
   score: document.getElementById("scoreDisplay"),
   staminaBar: document.getElementById("staminaBar"),
@@ -547,6 +601,54 @@ function createAudio() {
     },
   };
 }
+
+let bgMusicPlaying = false;
+
+function startBgMusic() {
+  if (bgMusicPlaying || !audio.ctx) return;
+  bgMusicPlaying = true;
+  const ctx = audio.ctx;
+  const master = ctx.createGain();
+  master.gain.value = 0.035;
+  master.connect(ctx.destination);
+  const notes = [262, 294, 330, 349, 392, 349, 330, 294, 262, 294, 330, 392, 440, 392, 330, 294];
+  let noteIdx = 0;
+  const bpm = 70, beatDuration = 60 / bpm;
+  function playNextNote() {
+    if (!bgMusicPlaying) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.value = notes[noteIdx % notes.length];
+    gain.gain.value = 0.08;
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + beatDuration * 0.9);
+    osc.connect(gain); gain.connect(master);
+    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + beatDuration * 0.9);
+    noteIdx++;
+    if (noteIdx % 4 === 0) {
+      const bass = ctx.createOscillator(); const bg = ctx.createGain();
+      bass.type = 'sine'; bass.frequency.value = 130;
+      bg.gain.value = 0.04; bg.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + beatDuration * 1.5);
+      bass.connect(bg); bg.connect(master);
+      bass.start(ctx.currentTime); bass.stop(ctx.currentTime + beatDuration * 1.5);
+    }
+    setTimeout(playNextNote, beatDuration * 0.25 * 1000);
+  }
+  function ambient() {
+    if (!bgMusicPlaying) return;
+    if (Math.random() < 0.3) {
+      const o = ctx.createOscillator(); const g = ctx.createGain();
+      o.type = 'sine'; o.frequency.value = 3000 + Math.random() * 2000;
+      g.gain.value = 0.008; g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+      o.connect(g); g.connect(master);
+      o.start(ctx.currentTime); o.stop(ctx.currentTime + 0.3);
+    }
+    setTimeout(ambient, 500 + Math.random() * 1500);
+  }
+  setTimeout(playNextNote, 500); setTimeout(ambient, 1000);
+}
+
+function stopBgMusic() { bgMusicPlaying = false; }
 
 function initAudio() {
   if (!state.audio) state.audio = createAudio();
@@ -1446,7 +1548,10 @@ function drawFloats() {
 }
 
 function render(time) {
+  updateCamera();
   ctx.clearRect(0, 0, WIDTH, HEIGHT);
+  ctx.save();
+  ctx.translate(-camera.x, -camera.y);
   drawTerrain();
   drawPondDetails(time);
   drawHoles(time);
@@ -1459,11 +1564,44 @@ function render(time) {
   }
 }
 
+
+function drawMinimap() {
+  const mmW = 140, mmH = Math.round(mmW * 1088 / 1600);
+  const mx = 960 - mmW - 10, my = 10;
+  ctx.fillStyle = 'rgba(0,0,0,0.45)';
+  ctx.beginPath();
+  if (ctx.roundRect) { ctx.roundRect(mx - 4, my - 4, mmW + 8, mmH + 8, 8); }
+  else { ctx.rect(mx - 4, my - 4, mmW + 8, mmH + 8); }
+  ctx.fill();
+  ctx.save();
+  ctx.beginPath(); ctx.rect(mx, my, mmW, mmH); ctx.clip();
+  const sx = mmW / 1600, sy = mmH / 1088;
+  for (let ty = 0; ty < 34; ty++) {
+    for (let tx = 0; tx < 50; tx++) {
+      const t = state.map[ty] ? state.map[ty][tx] : 'grass';
+      let c = '#5a9a4a';
+      if (t === 'road') c = '#8a7a6a';
+      else if (t === 'pond') c = '#4a8aba';
+      ctx.fillStyle = c;
+      ctx.fillRect(mx + tx * 32 * sx, my + ty * 32 * sy, Math.max(1, 32 * sx), Math.max(1, 32 * sy));
+    }
+  }
+  // 视野框
+  ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.lineWidth = 1;
+  ctx.strokeRect(mx + camera.x * sx, my + camera.y * sy, 960 * sx, 640 * sy);
+  // 玩家
+  ctx.fillStyle = '#ffd700';
+  ctx.beginPath(); ctx.arc(mx + player.x * sx, my + player.y * sy, 3, 0, 7); ctx.fill();
+    ctx.restore();
+  ctx.restore();
+}
+
 function loop(now) {
   const dt = Math.min((now - lastFrame) / 1000, 0.05);
   lastFrame = now;
   update(dt);
   render(state.time);
+    drawMinimap();
   requestAnimationFrame(loop);
 }
 
