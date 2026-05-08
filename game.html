@@ -6,18 +6,24 @@
 <title>🐛 抓虫大冒险 - 游戏</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{
-background:#1a2a1a;display:flex;align-items:center;justify-content:center;
-min-height:100vh;font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;overflow:hidden;
+html,body{
+width:100%;height:100%;overflow:hidden;
+background:#1a2a1a;
+font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
 }
+body{display:flex;flex-direction:column}
 .game-wrap{
-position:relative;background:rgba(255,255,255,0.06);backdrop-filter:blur(16px);
-border-radius:20px;padding:12px;box-shadow:0 8px 32px rgba(0,0,0,0.4);
+position:relative;flex:1;display:flex;flex-direction:column;
+background:rgba(0,0,0,0.2);
 }
-canvas{display:block;border-radius:12px;background:#4a7a3a;cursor:crosshair;width:960px;height:640px}
+canvas{
+display:block;flex:1;width:100%;height:100%;min-height:0;
+background:#4a7a3a;cursor:crosshair;
+object-fit:contain;
+}
 .hud{
-display:flex;align-items:center;gap:12px;padding:8px 14px;color:#fff;font-size:14px;
-background:rgba(0,0,0,0.35);backdrop-filter:blur(8px);border-radius:12px;margin-top:8px;flex-wrap:wrap;
+display:flex;align-items:center;gap:12px;padding:6px 14px;color:#fff;font-size:13px;
+background:rgba(0,0,0,0.5);backdrop-filter:blur(12px);flex-shrink:0;
 }
 .hud-item{display:flex;align-items:center;gap:5px}
 .hud-bar{width:100px;height:7px;background:rgba(255,255,255,0.12);border-radius:4px;overflow:hidden}
@@ -33,7 +39,7 @@ background:rgba(0,0,0,0.35);backdrop-filter:blur(8px);border-radius:12px;margin-
 .game-over-overlay{
 position:absolute;inset:0;z-index:10;display:none;
 align-items:center;justify-content:center;flex-direction:column;gap:16px;
-background:rgba(0,0,0,.6);backdrop-filter:blur(8px);border-radius:20px;color:#fff;
+background:rgba(0,0,0,.7);backdrop-filter:blur(8px);border-radius:0;color:#fff;
 }
 .game-over-overlay.show{display:flex}
 .game-over-overlay h2{font-size:32px}
@@ -57,11 +63,14 @@ background:rgba(255,255,255,.15);color:#fff;backdrop-filter:blur(4px);transition
     <span id="bugCount" style="font-size:12px;opacity:.5">🐛 0只</span>
     <span style="font-size:12px;opacity:.4" id="timerDisplay">⏱ 0s</span>
   </div>
-  <div class="help-bar">
-    <span><kbd>W A S D</kbd> 移动</span>
-    <span><kbd>E</kbd>/<kbd>Space</kbd> 抄子</span>
+  <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);z-index:5;
+    display:flex;gap:12px;padding:4px 14px;border-radius:20px;
+    background:rgba(0,0,0,0.35);backdrop-filter:blur(8px);font-size:10px;color:rgba(255,255,255,0.5);
+    pointer-events:none;white-space:nowrap;">
+    <span><kbd>WASD</kbd> 移动</span>
+    <span><kbd>E</kbd> 抄子</span>
     <span><kbd>Q</kbd> 铲子</span>
-    <span><kbd>R</kbd> 返回首页</span>
+    <span><kbd>R</kbd> 退出</span>
   </div>
   <!-- Game Over -->
   <div class="game-over-overlay" id="gameOver">
@@ -580,10 +589,25 @@ document.addEventListener('keyup',e=>{
 // 初始化
 // ═══════════════════════════════════════
 
+// 响应式 Canvas
+function resizeCanvas(){
+  const wrap=document.querySelector('.game-wrap');
+  const rect=wrap.getBoundingClientRect();
+  // 保持 3:2 比例
+  let w=rect.width-4,h=rect.height-40;
+  let ratio=960/640;
+  if(w/h>ratio){w=h*ratio}else{h=w/ratio}
+  c.style.width=Math.floor(w)+'px';
+  c.style.height=Math.floor(h)+'px';
+  c.width=960;c.height=640; // 内部始终960x640
+}
+window.addEventListener('resize',resizeCanvas);
+
 genMap();genHoles();
 for(let i=0;i<5;i++)spawnBug();
 spawnTimer=2;
 initAudio();
+setTimeout(resizeCanvas,50);
 requestAnimationFrame(loop);
 </script>
 </body>
