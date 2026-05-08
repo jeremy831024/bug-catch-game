@@ -3,16 +3,16 @@
 }
 
 :root {
-  --ink: #16412e;
+  --ink: #ffffff;
   --deep: #0e3b2b;
   --leaf: #39b96b;
   --sun: #ffc94d;
   --sky: #59c8ff;
   --berry: #ff6fa5;
-  --glass: rgba(255, 255, 255, 0.36);
-  --glass-strong: rgba(255, 255, 255, 0.56);
-  --stroke: rgba(255, 255, 255, 0.62);
-  --shadow: 0 24px 70px rgba(21, 85, 56, 0.25);
+  --glass: rgba(0, 0, 0, 0.25);
+  --glass-strong: rgba(0, 0, 0, 0.35);
+  --stroke: rgba(255, 255, 255, 0.12);
+  --shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
 }
 
 html,
