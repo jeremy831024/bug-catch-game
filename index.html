@@ -12,10 +12,10 @@
 .home-header h1{font-size:30px;margin:4px 0;letter-spacing:2px}
 .home-header .tagline{font-size:13px;opacity:.5;margin-bottom:12px}
 .actions{display:flex;flex-direction:column;gap:8px;margin:12px 0}
-.actions .btn{padding:12px;border-radius:14px;text-align:center;font-size:16px;font-weight:600;text-decoration:none;transition:.2s}
-.actions .btn-primary{background:linear-gradient(135deg,#4caf50,#8bc34a);color:#fff}
+.actions .btn{padding:10px 12px;border-radius:14px;text-align:center;font-size:15px;font-weight:600;text-decoration:none;transition:.2s;min-height:auto}
+.actions .btn-primary{background:linear-gradient(135deg,#4caf50,#8bc34a);color:#fff;min-height:auto}
 .actions .btn-primary:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(76,175,80,.3)}
-.actions .btn-secondary{background:rgba(255,255,255,.08);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.1)}
+.actions .btn-secondary{background:rgba(255,255,255,.08);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.1);min-height:auto}
 .actions .btn-secondary:hover{background:rgba(255,255,255,.12)}
 .actions .row{display:flex;gap:8px}
 .actions .row .btn{flex:1}
@@ -32,14 +32,8 @@
 <main class="page-center">
   <section class="glass-shell">
     <div class="home-header">
-      <div class="bug-row">
-        <img src="assets/grasshopper_small.png" alt="🦗" onerror="this.outerHTML='<span>🦗</span>'">
-        <img src="assets/mantis_small.png" alt="🦟" onerror="this.outerHTML='<span>🦟</span>'">
-        <img src="assets/beetle_small.png" alt="🪲" onerror="this.outerHTML='<span>🪲</span>'">
-        <img src="assets/butterfly_small.png" alt="🦋" onerror="this.outerHTML='<span>🦋</span>'">
-        <img src="assets/cicada_small.png" alt="🦗" onerror="this.outerHTML='<span>🦗</span>'">
-        <img src="assets/spider_small.png" alt="🕷️" onerror="this.outerHTML='<span>🕷️</span>'">
-        <img src="assets/dung_small.png" alt="💩" onerror="this.outerHTML='<span>💩</span>'">
+      <div class="bug-row" style="font-size:28px;letter-spacing:6px">
+        🦗 🦟 🪲 🦋 🦗 🕷️ 💩
       </div>
       <h1>🐛 抓虫大冒险</h1>
       <p class="tagline">带上抄子和铲子，去野外抓昆虫吧！</p>
