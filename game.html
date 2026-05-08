@@ -310,6 +310,7 @@ function update(dt){
           bugs[bi].fStamina=Math.max(0,bugs[bi].fStamina-10);
           bugs[bi].mCt=10;
         }
+        if(h.dbug)h.dbug.inHole=false;
         h.dbug=null;h.timer=0;
       }
     }
@@ -381,7 +382,8 @@ function update(dt){
       for(let h of holes){
         let d=Math.hypot(b.x-(h.x*T+T/2),b.y-(h.y*T+T/2));
         if(d<T*1.5&&!h.dbug){
-          h.dbug=b;h.timer=5+Math.random()*10;
+          h.dbug=b;b.inHole=true;b.holeX=h.x;b.holeY=h.y;
+          h.timer=5+Math.random()*10;
           b.x=h.x*T+T/2;b.y=h.y*T+T/2+10;break;
         }
       }
@@ -467,7 +469,7 @@ function draw(){
   // 虫子
   for(let b of bugs){
     if(b.hide)continue;
-    ctx.globalAlpha=b.inHole?.5:1;
+    ctx.globalAlpha=b.inHole?0.5:1;
     let bx=b.x,by=b.y-(b.flying?6:0);
 
     // 知了特殊绘制
