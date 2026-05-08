@@ -23,7 +23,6 @@ try {
 // 保存玩家名到排行榜用
 const SAVE_NAME = playerName;
 
-let camera = { x: 0, y: 0 };
 // ── 加载系统 ──
 let loadingState = { total: 0, loaded: 0, errors: 0, ready: false };
 const LOADING_IMAGES = [];
@@ -98,12 +97,7 @@ const VIEW_H = 640;
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
-canvas.addEventListener("keydown", (e) => { e.preventDefault(); e.stopPropagation(); }, { capture: true });
 
-
-// ═══════════════════════════════════════
-// 加载系统
-// ═══════════════════════════════════════
 const ui = {
   score: document.getElementById("scoreDisplay"),
   staminaBar: document.getElementById("staminaBar"),
@@ -120,13 +114,13 @@ const ui = {
 };
 
 const BUG_DEFS = [
-  { id: "grasshopper", name: "蚂蚱", rarity: "普通", points: 10, toxic: false, holeStyle: "土洞", asset: "grasshopper", speed: 62, size: 14 },
-  { id: "mantis", name: "螳螂", rarity: "普通", points: 15, toxic: false, holeStyle: "草洞", asset: "mantis", speed: 52, size: 15 },
-  { id: "beetle", name: "独角仙", rarity: "稀有", points: 50, toxic: false, holeStyle: "树洞", asset: "beetle", speed: 32, size: 18 },
-  { id: "butterfly", name: "蝴蝶", rarity: "稀有", points: 30, toxic: false, holeStyle: "花洞", asset: "butterfly", speed: 68, size: 12 },
-  { id: "cicada", name: "知了", rarity: "普通", points: 20, toxic: false, holeStyle: "树洞", asset: "cicada", speed: 24, size: 14 },
-  { id: "spider", name: "蜘蛛", rarity: "少见", points: 25, toxic: true, holeStyle: "网洞", asset: "spider", speed: 42, size: 14 },
-  { id: "dung", name: "屎壳郎", rarity: "陷阱", points: -10, toxic: true, holeStyle: "粪洞", asset: "dung", speed: 20, size: 16 },
+  { id: "grasshopper", name: "蚂蚱", rarity: "普通", points: 10, toxic: false, holeStyle: "土洞", asset: "grasshopper", speed: 62 },
+  { id: "mantis", name: "螳螂", rarity: "普通", points: 15, toxic: false, holeStyle: "草洞", asset: "mantis", speed: 52 },
+  { id: "beetle", name: "独角仙", rarity: "稀有", points: 50, toxic: false, holeStyle: "树洞", asset: "beetle", speed: 32 },
+  { id: "butterfly", name: "蝴蝶", rarity: "稀有", points: 30, toxic: false, holeStyle: "花洞", asset: "butterfly", speed: 68 },
+  { id: "cicada", name: "知了", rarity: "普通", points: 20, toxic: false, holeStyle: "树洞", asset: "cicada", speed: 24 },
+  { id: "spider", name: "蜘蛛", rarity: "少见", points: 25, toxic: true, holeStyle: "网洞", asset: "spider", speed: 42 },
+  { id: "dung", name: "屎壳郎", rarity: "陷阱", points: -10, toxic: true, holeStyle: "粪洞", asset: "dung", speed: 20 },
 ];
 
 const HOLE_STYLES = ["土洞", "草洞", "树洞", "花洞", "网洞", "粪洞"];
@@ -139,7 +133,6 @@ const state = {
   ended: false,
   map: [],
   ponds: [],
-  trees: [],
   roads: [],
   burrows: [],
   bugs: [],
@@ -274,25 +267,6 @@ function buildMap() {
       }
     }
   }
-  
-  // 生成树木
-  state.trees = [];
-  const treeCount = randInt(8, 14);
-  for (let i = 0; i < treeCount; i++) {
-    let a = 0;
-    while (a < 30) {
-      const tx = randInt(2, COLS - 3);
-      const ty = randInt(2, ROWS - 3);
-      if (state.map[ty][tx] === 'grass') {
-        let clash = false;
-        for (const t of state.trees) {
-          if (Math.abs(t.tx - tx) + Math.abs(t.ty - ty) < 3) { clash = true; break; }
-        }
-        if (!clash) { state.trees.push({ tx, ty }); break; }
-      }
-      a++;
-    }
-  }
 }
 
 function grassCandidates() {
@@ -312,16 +286,8 @@ function grassCandidates() {
   return cells;
 }
 
-function shuffle(arr) {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
-
 function createBurrows() {
-  const candidates = shuffle(grassCandidates());
+  const candidates = grassCandidates();
   const used = new Set();
   const burrowCount = randInt(5, 8);
   const connectedCount = randInt(2, 3);
@@ -447,12 +413,10 @@ function createBug(def) {
 }
 
 function spawnBugs() {
-  // 初始只生成3-4只, 后续持续生成
-  state.bugs = [];
-  for (let i = 0; i < 4; i++) {
+  state.bugs = BUG_DEFS.map(createBug);
+  while (state.bugs.length < 12) {
     state.bugs.push(createBug(BUG_DEFS[randInt(0, BUG_DEFS.length - 1)]));
   }
-  state.bugSpawnTimer = 3;
 }
 
 function drawSprite(name, x, y, size, fallback) {
@@ -583,54 +547,6 @@ function createAudio() {
     },
   };
 }
-
-let bgMusicPlaying = false;
-
-function startBgMusic() {
-  if (bgMusicPlaying || !audio.ctx) return;
-  bgMusicPlaying = true;
-  const ctx = audio.ctx;
-  const master = ctx.createGain();
-  master.gain.value = 0.035;
-  master.connect(ctx.destination);
-  const notes = [262, 294, 330, 349, 392, 349, 330, 294, 262, 294, 330, 392, 440, 392, 330, 294];
-  let noteIdx = 0;
-  const bpm = 70, beatDuration = 60 / bpm;
-  function playNextNote() {
-    if (!bgMusicPlaying) return;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.value = notes[noteIdx % notes.length];
-    gain.gain.value = 0.08;
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + beatDuration * 0.9);
-    osc.connect(gain); gain.connect(master);
-    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + beatDuration * 0.9);
-    noteIdx++;
-    if (noteIdx % 4 === 0) {
-      const bass = ctx.createOscillator(); const bg = ctx.createGain();
-      bass.type = 'sine'; bass.frequency.value = 130;
-      bg.gain.value = 0.04; bg.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + beatDuration * 1.5);
-      bass.connect(bg); bg.connect(master);
-      bass.start(ctx.currentTime); bass.stop(ctx.currentTime + beatDuration * 1.5);
-    }
-    setTimeout(playNextNote, beatDuration * 0.25 * 1000);
-  }
-  function ambient() {
-    if (!bgMusicPlaying) return;
-    if (Math.random() < 0.3) {
-      const o = ctx.createOscillator(); const g = ctx.createGain();
-      o.type = 'sine'; o.frequency.value = 3000 + Math.random() * 2000;
-      g.gain.value = 0.008; g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
-      o.connect(g); g.connect(master);
-      o.start(ctx.currentTime); o.stop(ctx.currentTime + 0.3);
-    }
-    setTimeout(ambient, 500 + Math.random() * 1500);
-  }
-  setTimeout(playNextNote, 500); setTimeout(ambient, 1000);
-}
-
-function stopBgMusic() { bgMusicPlaying = false; }
 
 function initAudio() {
   if (!state.audio) state.audio = createAudio();
@@ -1068,17 +984,15 @@ function finishGame() {
 }
 
 function update(dt) {
-  try {
   if (state.ended) return;
   state.time += dt;
   updatePoison(dt);
   updatePlayer(dt);
   updateHoles(dt);
-  for (const bug of (state.bugs || [])) updateBug(bug, dt);
+  for (const bug of state.bugs) updateBug(bug, dt);
   updateFloats(dt);
   updateHUD();
-  // game time handled above
-  } catch(e) { console.error("Update err:", e); }
+  if (state.time >= 90) finishGame();
 }
 
 // 简化perlin噪声用于地图
@@ -1100,7 +1014,7 @@ function drawTerrain() {
     for (let tx = 0; tx < COLS; tx++) {
       const tile = state.map[ty][tx];
       const cx = tx * TILE, cy = ty * TILE;
-      if (tile === "pond") {
+      if (tile === "water") {
         // 池塘 — 卫星图效果
         const wat = Math.sin(state.time * 0.5 + tx + ty) * 3;
         ctx.fillStyle = `hsl(210,68%,${45 + wat}%)`;
@@ -1131,23 +1045,24 @@ function drawTerrain() {
 }
 
 function drawPondDetails(time) {
-  // 简单池塘渲染 — 无旋涡
   for (const pond of state.ponds) {
     const cx = pond.cx * TILE + TILE / 2;
     const cy = pond.cy * TILE + TILE / 2;
     ctx.save();
     ctx.translate(cx, cy);
-    // 水面反光
-    ctx.fillStyle = 'rgba(200,230,255,0.08)';
-    ctx.beginPath();
-    ctx.ellipse(0, 0, 20, 12, 0, 0, 7);
-    ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,0.2)";
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 5; i++) {
+      ctx.beginPath();
+      ctx.ellipse(Math.sin(time * 0.8 + i) * 2, Math.cos(time * 0.9 + i) * 2, 18 + i * 4, 10 + i * 2, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
     ctx.restore();
   }
 }
 
 function drawHoles(time) {
-  for (const burrow of (state.burrows || [])) {
+  for (const burrow of state.burrows) {
     if (burrow.broken) continue;
     for (const exit of burrow.exits) {
       // 2.5D 洞 — 有深度的地洞
@@ -1320,7 +1235,7 @@ function drawRealBug(bug) {
   ctx.fillStyle = 'rgba(0,0,0,0.12)'; ctx.beginPath();
   ctx.ellipse(2, sz * 0.6, sz * 0.6, 3, 0, 0, 7); ctx.fill();
   
-  if (bug.id === 'grasshopper') {
+  if (bug.id === 'hopper') {
     ctx.fillStyle = '#5a8a30'; ctx.beginPath(); ctx.ellipse(0, 0, sz * 0.8, sz * 0.4, 0, 0, 7); ctx.fill();
     ctx.fillStyle = '#6a8a40'; ctx.beginPath(); ctx.arc(sz * 0.6, -sz * 0.1, sz * 0.3, 0, 7); ctx.fill();
     ctx.fillStyle = '#222'; ctx.beginPath();
@@ -1448,8 +1363,6 @@ function drawPlayer() {
   // 走路晃动
   const walkBob = player.moving ? Math.sin(t * 8) * 2 : 0;
   
-  // 检查是否撞树
-  
   // 2.5D 投影
   ctx.fillStyle = 'rgba(0,0,0,0.2)';
   ctx.beginPath();
@@ -1517,13 +1430,6 @@ function drawPlayer() {
   ctx.strokeStyle = '#c08060'; ctx.lineWidth = 1.2;
   ctx.beginPath(); ctx.arc(0, -11, 4, 0.1, 2.8); ctx.stroke();
   
-  // ⚠️ 中毒闪烁效果 (慢速紫色闪烁)
-  if (state.poison > 0) {
-    const flash = Math.sin(state.time * 2.5) * 0.5 + 0.5;  // 0~1 慢速
-    ctx.fillStyle = `rgba(156, 39, 176, ${flash * 0.3})`;
-    ctx.beginPath(); ctx.arc(0, -8, 30, 0, 7); ctx.fill();
-  }
-  
   ctx.restore();
 }
 
@@ -1539,32 +1445,12 @@ function drawFloats() {
   }
 }
 
-function updateCamera() {
-  // 地图 960×640 刚好等于视口大小，无需相机滚动
-  // 相机固定在 (0,0)，避免边缘漂移露出空白
-  camera.x = 0;
-  camera.y = 0;
-}
-function drawTrees() {
-  for (const tree of state.trees) {
-    const cx = tree.tx * TILE + TILE/2, cy = tree.ty * TILE + TILE/2;
-    ctx.fillStyle = '#5a3a1a'; ctx.fillRect(cx - 3, cy - 1, 6, 14);
-    ctx.fillStyle = '#2a6a2a'; ctx.beginPath(); ctx.arc(cx, cy - 5, 14, 0, 7); ctx.fill();
-    ctx.fillStyle = '#3a7a3a'; ctx.beginPath(); ctx.arc(cx - 3, cy - 8, 8, 0, 7); ctx.fill();
-    ctx.beginPath(); ctx.arc(cx + 4, cy - 7, 7, 0, 7); ctx.fill();
-  }
-}
-
 function render(time) {
-  updateCamera();
   ctx.clearRect(0, 0, WIDTH, HEIGHT);
-  ctx.save();
-  ctx.translate(-camera.x, -camera.y);
   drawTerrain();
   drawPondDetails(time);
-  drawTrees();
   drawHoles(time);
-  for (const bug of (state.bugs || [])) { try { drawBug(bug, time); } catch(e) {} }
+  for (const bug of state.bugs) drawBug(bug, time);
   drawPlayer();
   drawFloats();
   if (state.poison > 0) {
@@ -1573,61 +1459,11 @@ function render(time) {
   }
 }
 
-
-function drawMinimap() {
-  const mmW = 140, mmH = Math.round(mmW * 1088 / 1600);
-  const mx = 960 - mmW - 10, my = 640 - mmH - 10;  // 屏幕右下角
-  
-  // 根据玩家位置计算透明度 (玩家靠近时淡出)
-  const px = player.x - camera.x, py = player.y - camera.y;  // 玩家在屏幕上的坐标
-  const distToMM = Math.hypot(px - (mx + mmW/2), py - (my + mmH/2));
-  let alpha = Math.min(1, Math.max(0.05, (distToMM - 60) / 120));  // 60px内淡出, 180px外全显
-  // 平滑过渡
-  if (!drawMinimap._lastAlpha) drawMinimap._lastAlpha = 1;
-  drawMinimap._lastAlpha += (alpha - drawMinimap._lastAlpha) * 0.1;
-  alpha = drawMinimap._lastAlpha;
-  
-  ctx.save();
-  ctx.globalAlpha = alpha;
-  
-  // 背景
-  ctx.fillStyle = 'rgba(0,0,0,0.5)';
-  ctx.beginPath();
-  if (ctx.roundRect) { ctx.roundRect(mx - 4, my - 4, mmW + 8, mmH + 8, 8); }
-  else { ctx.rect(mx - 4, my - 4, mmW + 8, mmH + 8); }
-  ctx.fill();
-  ctx.save();
-  ctx.beginPath(); ctx.rect(mx, my, mmW, mmH); ctx.clip();
-  
-  // 缩略地图
-  const sx = mmW / 1600, sy = mmH / 1088;
-  for (let ty = 0; ty < 34; ty++) {
-    for (let tx = 0; tx < 50; tx++) {
-      const t = state.map[ty] ? state.map[ty][tx] : 'grass';
-      let c = '#5a9a4a';
-      if (t === 'road') c = '#8a7a6a';
-      else if (t === 'pond') c = '#4a8aba';
-      ctx.fillStyle = c;
-      ctx.fillRect(mx + tx * 32 * sx, my + ty * 32 * sy, Math.max(1, 32 * sx), Math.max(1, 32 * sy));
-    }
-  }
-  // 视野框
-  ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 1;
-  ctx.strokeRect(mx + camera.x * sx, my + camera.y * sy, 960 * sx, 640 * sy);
-  // 玩家点
-  ctx.fillStyle = '#ffd700';
-  ctx.beginPath(); ctx.arc(mx + player.x * sx, my + player.y * sy, 3, 0, 7); ctx.fill();
-  
-  ctx.restore();
-  ctx.restore();
-}
-
 function loop(now) {
   const dt = Math.min((now - lastFrame) / 1000, 0.05);
   lastFrame = now;
   update(dt);
   render(state.time);
-    drawMinimap();
   requestAnimationFrame(loop);
 }
 
@@ -1636,10 +1472,21 @@ function handleAssetLoaded(name, img) {
 }
 
 function loadAssets() {
-  // 游戏秒开, 不加载图片
+  // 先显示加载画面
+  drawLoadingScreen();
   initSprites();
+  loadMapTiles();
   const files = {
     child: selectedCharFile,
+    grasshopper: "assets/grasshopper_small.png",
+    mantis: "assets/mantis_small.png",
+    beetle: "assets/beetle_small.png",
+    butterfly: "assets/butterfly_small.png",
+    cicada: "assets/cicada_small.png",
+    spider: "assets/spider_small.png",
+    dung: "assets/dung_small.png",
+    hole: "assets/hole.png",
+    // 卫星地图贴片
     grassTiles: ["assets/grass1_tile.png","assets/grass2_tile.png","assets/grass3_tile.png"],
     roadTiles: ["assets/road2_tile.png"],
     waterTiles: ["assets/water1_tile.png","assets/water2_tile.png"],
@@ -1708,8 +1555,8 @@ async function generateAssets() {
 
 function ensurePlayer() {
   return {
-    x: TILE * 25 + 16,
-    y: TILE * 17 + 16,
+    x: TILE * 3 + 16,
+    y: TILE * 3 + 16,
     dir: 0,
   };
 }
@@ -1717,14 +1564,14 @@ function ensurePlayer() {
 let player = ensurePlayer();
 let lastFrame = performance.now();
 
-window.addEventListener("keydown", (event) => {
+document.addEventListener("keydown", (event) => {
   state.keys[event.code] = true;
-  if (event.code.startsWith("Arrow") || ["KeyE", "Space", "KeyQ", "KeyR"].includes(event.code)) event.preventDefault();
+  if (["KeyE", "Space", "KeyQ", "KeyR"].includes(event.code)) event.preventDefault();
   initAudio();
   if (event.code === "KeyE" || event.code === "Space") catchWithNet();
   if (event.code === "KeyQ") shovelHole();
   if (event.code === "KeyR") window.location.href = "index.html";
-}, { capture: true });
+});
 
 document.addEventListener("keyup", (event) => {
   state.keys[event.code] = false;
@@ -1735,12 +1582,11 @@ ui.replayButton.addEventListener("click", () => window.location.reload());
 canvas.addEventListener("pointerdown", () => initAudio(), { passive: true });
 
 function initGame() {
-  ctx.fillStyle = "#FF0"; ctx.font = "24px bold sans-serif"; ctx.textAlign = "center"; ctx.fillText("🐛 游戏启动中...", 480, 320);
   buildMap();
   createBurrows();
   spawnBugs();
+  loadAssets();
   ui.poisonWrap.style.display = "none";
-  // 直接启动, 无加载画面
   requestAnimationFrame(loop);
 }
 

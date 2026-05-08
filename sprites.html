@@ -176,8 +176,47 @@ function drawPlayer() {
   ctx.restore();
 }
 
+function drawTerrain() {
+  const grid = document.getElementById('terrainGrid');
+  const tiles = [
+    {color:'#5a9a4a',label:'草地',w:3},
+    {color:'#8a7a6a',label:'山路',w:1},
+    {color:'#4a8aba',label:'池塘',w:1},
+  ];
+  for (const t of tiles) {
+    for (let i=0; i < (t.w||1); i++) {
+      const c = document.createElement('canvas');
+      c.width = 64; c.height = 64;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = t.color;
+      ctx.fillRect(0, 0, 64, 64);
+      // 草地纹理
+      if (t.color === '#5a9a4a') {
+        for (let j=0;j<6;j++) {
+          ctx.fillStyle = `rgba(45,110,35,${0.05+Math.random()*0.1})`;
+          ctx.beginPath(); ctx.arc(8+Math.random()*48, 8+Math.random()*48, 2+Math.random()*3, 0, 7); ctx.fill();
+        }
+      }
+      if (t.color === '#8a7a6a') {
+        ctx.fillStyle = 'rgba(120,110,100,0.3)';
+        ctx.beginPath(); ctx.arc(32, 32, 6, 0, 7); ctx.fill();
+      }
+      if (t.color === '#4a8aba') {
+        ctx.fillStyle = 'rgba(200,230,255,0.15)';
+        ctx.beginPath(); ctx.arc(32, 32, 16, 0, 7); ctx.stroke();
+      }
+      ctx.fillStyle = 'rgba(0,0,0,0.04)';
+      ctx.fillRect(0, 63, 64, 1);
+      ctx.fillRect(63, 0, 1, 64);
+      c.title = t.label;
+      grid.appendChild(c);
+    }
+  }
+}
+
 drawAllBugs();
 drawPlayer();
+drawTerrain();
 </script>
 </body>
 </html>
