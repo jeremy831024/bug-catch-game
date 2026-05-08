@@ -119,13 +119,13 @@ const ui = {
 };
 
 const BUG_DEFS = [
-  { id: "grasshopper", name: "蚂蚱", rarity: "普通", points: 10, toxic: false, holeStyle: "土洞", asset: "grasshopper", speed: 62 },
-  { id: "mantis", name: "螳螂", rarity: "普通", points: 15, toxic: false, holeStyle: "草洞", asset: "mantis", speed: 52 },
-  { id: "beetle", name: "独角仙", rarity: "稀有", points: 50, toxic: false, holeStyle: "树洞", asset: "beetle", speed: 32 },
-  { id: "butterfly", name: "蝴蝶", rarity: "稀有", points: 30, toxic: false, holeStyle: "花洞", asset: "butterfly", speed: 68 },
-  { id: "cicada", name: "知了", rarity: "普通", points: 20, toxic: false, holeStyle: "树洞", asset: "cicada", speed: 24 },
-  { id: "spider", name: "蜘蛛", rarity: "少见", points: 25, toxic: true, holeStyle: "网洞", asset: "spider", speed: 42 },
-  { id: "dung", name: "屎壳郎", rarity: "陷阱", points: -10, toxic: true, holeStyle: "粪洞", asset: "dung", speed: 20 },
+  { id: "grasshopper", name: "蚂蚱", rarity: "普通", points: 10, toxic: false, holeStyle: "土洞", asset: "grasshopper", speed: 62, size: 14 },
+  { id: "mantis", name: "螳螂", rarity: "普通", points: 15, toxic: false, holeStyle: "草洞", asset: "mantis", speed: 52, size: 15 },
+  { id: "beetle", name: "独角仙", rarity: "稀有", points: 50, toxic: false, holeStyle: "树洞", asset: "beetle", speed: 32, size: 18 },
+  { id: "butterfly", name: "蝴蝶", rarity: "稀有", points: 30, toxic: false, holeStyle: "花洞", asset: "butterfly", speed: 68, size: 12 },
+  { id: "cicada", name: "知了", rarity: "普通", points: 20, toxic: false, holeStyle: "树洞", asset: "cicada", speed: 24, size: 14 },
+  { id: "spider", name: "蜘蛛", rarity: "少见", points: 25, toxic: true, holeStyle: "网洞", asset: "spider", speed: 42, size: 14 },
+  { id: "dung", name: "屎壳郎", rarity: "陷阱", points: -10, toxic: true, holeStyle: "粪洞", asset: "dung", speed: 20, size: 16 },
 ];
 
 const HOLE_STYLES = ["土洞", "草洞", "树洞", "花洞", "网洞", "粪洞"];
@@ -1067,7 +1067,7 @@ function drawTerrain() {
     for (let tx = 0; tx < COLS; tx++) {
       const tile = state.map[ty][tx];
       const cx = tx * TILE, cy = ty * TILE;
-      if (tile === "water") {
+      if (tile === "pond") {
         // 池塘 — 卫星图效果
         const wat = Math.sin(state.time * 0.5 + tx + ty) * 3;
         ctx.fillStyle = `hsl(210,68%,${45 + wat}%)`;
@@ -1288,7 +1288,7 @@ function drawRealBug(bug) {
   ctx.fillStyle = 'rgba(0,0,0,0.12)'; ctx.beginPath();
   ctx.ellipse(2, sz * 0.6, sz * 0.6, 3, 0, 0, 7); ctx.fill();
   
-  if (bug.id === 'hopper') {
+  if (bug.id === 'grasshopper') {
     ctx.fillStyle = '#5a8a30'; ctx.beginPath(); ctx.ellipse(0, 0, sz * 0.8, sz * 0.4, 0, 0, 7); ctx.fill();
     ctx.fillStyle = '#6a8a40'; ctx.beginPath(); ctx.arc(sz * 0.6, -sz * 0.1, sz * 0.3, 0, 7); ctx.fill();
     ctx.fillStyle = '#222'; ctx.beginPath();
