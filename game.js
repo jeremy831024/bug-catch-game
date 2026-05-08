@@ -138,6 +138,7 @@ const state = {
   ended: false,
   map: [],
   ponds: [],
+  trees: [],
   roads: [],
   burrows: [],
   bugs: [],
@@ -270,6 +271,25 @@ function buildMap() {
           state.map[ty][tx] = "pond";
         }
       }
+    }
+  }
+  
+  // 生成树木
+  state.trees = [];
+  const treeCount = randInt(8, 14);
+  for (let i = 0; i < treeCount; i++) {
+    let a = 0;
+    while (a < 30) {
+      const tx = randInt(2, COLS - 3);
+      const ty = randInt(2, ROWS - 3);
+      if (state.map[ty][tx] === 'grass') {
+        let clash = false;
+        for (const t of state.trees) {
+          if (Math.abs(t.tx - tx) + Math.abs(t.ty - ty) < 3) { clash = true; break; }
+        }
+        if (!clash) { state.trees.push({ tx, ty }); break; }
+      }
+      a++;
     }
   }
 }
@@ -1425,6 +1445,10 @@ function drawPlayer() {
   // 走路晃动
   const walkBob = player.moving ? Math.sin(t * 8) * 2 : 0;
   
+  // 检查是否撞树
+  const onTree = state.trees.some(t => Math.abs(Math.floor(newX/TILE) - t.tx) + Math.abs(Math.floor(newY/TILE) - t.ty) < 1);
+  if (onTree) { /* blocked by tree */ }
+  
   // 2.5D 投影
   ctx.fillStyle = 'rgba(0,0,0,0.2)';
   ctx.beginPath();
@@ -1520,6 +1544,16 @@ function updateCamera() {
   if (WIDTH > 960) camera.x = Math.max(0, Math.min(WIDTH - 960, camera.x));
   if (HEIGHT > 640) camera.y = Math.max(0, Math.min(HEIGHT - 640, camera.y));
 }
+function drawTrees() {
+  for (const tree of state.trees) {
+    const cx = tree.tx * TILE + TILE/2, cy = tree.ty * TILE + TILE/2;
+    ctx.fillStyle = '#5a3a1a'; ctx.fillRect(cx - 3, cy - 1, 6, 14);
+    ctx.fillStyle = '#2a6a2a'; ctx.beginPath(); ctx.arc(cx, cy - 5, 14, 0, 7); ctx.fill();
+    ctx.fillStyle = '#3a7a3a'; ctx.beginPath(); ctx.arc(cx - 3, cy - 8, 8, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + 4, cy - 7, 7, 0, 7); ctx.fill();
+  }
+}
+
 function render(time) {
   updateCamera();
   ctx.clearRect(0, 0, WIDTH, HEIGHT);
@@ -1527,6 +1561,7 @@ function render(time) {
   ctx.translate(-camera.x, -camera.y);
   drawTerrain();
   drawPondDetails(time);
+  drawTrees();
   drawHoles(time);
   for (const bug of state.bugs) drawBug(bug, time);
   drawPlayer();
