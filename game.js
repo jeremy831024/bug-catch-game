@@ -1662,13 +1662,9 @@ function initGame() {
   buildMap();
   createBurrows();
   spawnBugs();
-  // 直接启动, 不加载图片 (虫子用Canvas画)
   ui.poisonWrap.style.display = "none";
-  // 简单显示加载中的文字
-  drawLoadingScreen();
-  setTimeout(() => {
-    requestAnimationFrame(loop);
-  }, 300);
+  // 直接启动, 无加载画面
+  requestAnimationFrame(loop);
 }
 
 window.generateAssets = generateAssets;
