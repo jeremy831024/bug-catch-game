@@ -1492,6 +1492,13 @@ function drawPlayer() {
   ctx.strokeStyle = '#c08060'; ctx.lineWidth = 1.2;
   ctx.beginPath(); ctx.arc(0, -11, 4, 0.1, 2.8); ctx.stroke();
   
+  // ⚠️ 中毒闪烁效果 (慢速紫色闪烁)
+  if (state.poison > 0) {
+    const flash = Math.sin(state.time * 2.5) * 0.5 + 0.5;  // 0~1 慢速
+    ctx.fillStyle = `rgba(156, 39, 176, ${flash * 0.3})`;
+    ctx.beginPath(); ctx.arc(0, -8, 30, 0, 7); ctx.fill();
+  }
+  
   ctx.restore();
 }
 
