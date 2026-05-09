@@ -1574,8 +1574,8 @@ function render(time) {
     ctx.fillStyle = "rgba(158, 74, 201, 0.08)";
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
   }
+    ctx.restore();
 }
-
 
 function drawMinimap() {
   const mmW = 140, mmH = Math.round(mmW * 1088 / 1600);
