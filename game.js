@@ -179,6 +179,15 @@ const state = {
   keys: Object.create(null),
   audio: null,
   assets: Object.create(null),
+  digging: {
+    active: false,
+    burrowId: null,
+    exitKey: null,
+    elapsed: 0,
+    duration: 0,
+    target: null,
+    pulse: 0,
+  },
 };
 
 function rand(min, max) {
@@ -735,24 +744,36 @@ function getPlayerTile() {
   return nearestTile(player.x, player.y);
 }
 
-function holeAtPlayer() {
+function holeAtPlayer(rangeTiles = 0) {
+  return nearbyDigTarget(rangeTiles);
+}
+
+function nearbyDigTarget(rangeTiles = 1) {
   const { tx, ty } = getPlayerTile();
+  let best = null;
+  let bestDist = Infinity;
   for (const burrow of state.burrows) {
     if (burrow.broken) continue;
     for (const exit of burrow.exits) {
-      if (exit.tx === tx && exit.ty === ty) return { burrow, exit };
+      const tileDist = Math.max(Math.abs(exit.tx - tx), Math.abs(exit.ty - ty));
+      if (tileDist > rangeTiles) continue;
+      const d = Math.hypot(exit.x - player.x, exit.y - player.y);
+      if (d < bestDist) {
+        bestDist = d;
+        best = { burrow, exit, key: `${exit.tx}:${exit.ty}` };
+      }
     }
   }
-  return null;
+  return best;
 }
 
 function bugAtTile(tx, ty) {
   return state.bugs.find((bug) => !bug.holeId && Math.floor(bug.x / TILE) === tx && Math.floor(bug.y / TILE) === ty);
 }
 
-function shovelHole() {
+function shovelHole(target = null) {
   if (state.ended || state.poison > 0) return;
-  const found = holeAtPlayer();
+  const found = target || nearbyDigTarget(1);
   if (!found) {
     state.stamina = clamp(state.stamina - 8, 0, 100);
     addFloat(player.x, player.y - 24, "这里没有洞", "#fff3b0");
@@ -791,6 +812,68 @@ function shovelHole() {
     addFloat(player.x, player.y - 24, "空洞 -25", "#ff9f4a");
   }
   if (state.audio) state.audio.shovel();
+}
+
+function digDurationFor(burrow) {
+  if (!burrow) return 3;
+  const base = burrow.connected ? 5 : 3;
+  const exits = Math.max(1, burrow.exits?.length || 1);
+  return clamp(base + (exits - 1) * 0.5, 3, 5);
+}
+
+function resetDigging() {
+  state.digging.active = false;
+  state.digging.burrowId = null;
+  state.digging.exitKey = null;
+  state.digging.elapsed = 0;
+  state.digging.duration = 0;
+  state.digging.target = null;
+}
+
+function completeDigging(target) {
+  if (!target || target.burrow.broken) return;
+  shovelHole(target);
+}
+
+function updateDigging(dt) {
+  state.digging.pulse += dt;
+  if (state.ended || state.poison > 0 || !keyDown("KeyQ")) {
+    if (state.digging.active) resetDigging();
+    return;
+  }
+
+  const target = nearbyDigTarget(1);
+  if (!target) {
+    if (state.digging.active) {
+      addFloat(player.x, player.y - 24, "挖掘中断", "#fff3b0");
+      resetDigging();
+    }
+    return;
+  }
+
+  if (!state.digging.active || state.digging.burrowId !== target.burrow.id || state.digging.exitKey !== target.key) {
+    state.digging.active = true;
+    state.digging.burrowId = target.burrow.id;
+    state.digging.exitKey = target.key;
+    state.digging.elapsed = 0;
+    state.digging.duration = digDurationFor(target.burrow);
+    state.digging.target = target;
+    addFloat(player.x, player.y - 28, "开始挖掘", "#fff3b0");
+  }
+
+  state.digging.target = target;
+  state.digging.elapsed += dt;
+  player.dir = Math.atan2(target.exit.y - player.y, target.exit.x - player.x);
+  state.stamina = clamp(state.stamina - 2.5 * dt, 0, 100);
+
+  if (state.audio && Math.floor(state.digging.elapsed * 3) !== Math.floor((state.digging.elapsed - dt) * 3)) {
+    state.audio.shovel();
+  }
+
+  if (state.digging.elapsed >= state.digging.duration) {
+    completeDigging(target);
+    resetDigging();
+  }
 }
 
 function catchWithNet() {
@@ -1036,6 +1119,10 @@ function updateBug(bug, dt) {
 
 function updatePlayer(dt) {
   if (state.poison > 0) return;
+  if (state.digging.active || (keyDown("KeyQ") && nearbyDigTarget(1))) {
+    player.moving = false;
+    return;
+  }
   let dx = 0;
   let dy = 0;
   if (keyDown("KeyW") || keyDown("ArrowUp")) dy -= 1;
@@ -1145,6 +1232,7 @@ function update(dt) {
   // 90秒游戏时限
   if (state.time > 90) { finishGame(); return; }
   updatePoison(dt);
+  updateDigging(dt);
   updatePlayer(dt);
   updateHoles(dt);
   for (const bug of (state.bugs || [])) updateBug(bug, dt);
@@ -1268,6 +1356,67 @@ function drawHoles(time) {
       ctx.restore();
     }
   }
+}
+
+function drawDigPrompt(time) {
+  if (state.ended || state.poison > 0) return;
+  const target = nearbyDigTarget(1);
+  if (!target) return;
+  const pulse = Math.sin(time * 5) * 0.5 + 0.5;
+  ctx.save();
+  ctx.translate(player.x, player.y + 24);
+  ctx.strokeStyle = `rgba(255, 243, 168, ${0.55 + pulse * 0.35})`;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 20 + pulse * 5, 8 + pulse * 2, 0, 0, 7);
+  ctx.stroke();
+  if (!state.digging.active) {
+    ctx.fillStyle = "rgba(86, 53, 31, 0.72)";
+    ctx.font = "bold 10px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("按住 Q 挖掘", 0, -12);
+  }
+  ctx.restore();
+}
+
+function drawDigProgress() {
+  if (!state.digging.active || !state.digging.duration) return;
+  const progress = clamp(state.digging.elapsed / state.digging.duration, 0, 1);
+  const remaining = Math.max(0, state.digging.duration - state.digging.elapsed);
+  const width = 54;
+  const height = 8;
+  const x = player.x - width / 2;
+  const y = player.y - 58;
+  const swing = Math.sin(state.time * 16) * 0.35;
+
+  ctx.save();
+  ctx.translate(player.x + 18, player.y - 10);
+  ctx.rotate(player.dir + swing);
+  ctx.strokeStyle = "#8B4513";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(20, -18);
+  ctx.stroke();
+  ctx.fillStyle = "#b8b8b8";
+  ctx.fillRect(17, -24, 12, 7);
+  ctx.restore();
+
+  ctx.save();
+  ctx.fillStyle = "rgba(38, 23, 14, 0.65)";
+  ctx.fillRect(x - 3, y - 3, width + 6, height + 6);
+  ctx.fillStyle = "#fff0bf";
+  ctx.fillRect(x, y, width, height);
+  ctx.fillStyle = "#5aa34d";
+  ctx.fillRect(x, y, width * progress, height);
+  ctx.strokeStyle = "#56351f";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(x - 1, y - 1, width + 2, height + 2);
+  ctx.fillStyle = "#4b2f1c";
+  ctx.font = "bold 10px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(`${remaining.toFixed(1)}s`, player.x, y - 6);
+  ctx.restore();
 }
 
 // 真实风格昆虫绘制
@@ -1788,8 +1937,10 @@ function render(time) {
   drawPondDetails(time);
   drawTrees();
   drawHoles(time);
+  drawDigPrompt(time);
   for (const bug of (state.bugs || [])) { try { drawBug(bug, time); } catch(e) {} }
   drawPlayer();
+  drawDigProgress();
   drawFloats();
   if (state.poison > 0) {
     ctx.fillStyle = "rgba(158, 74, 201, 0.08)";
@@ -1947,7 +2098,6 @@ window.addEventListener("keydown", (event) => {
   if (event.code.startsWith("Arrow") || ["KeyE", "Space", "KeyQ", "KeyR"].includes(event.code)) event.preventDefault();
   initAudio();
   if (event.code === "KeyE" || event.code === "Space") catchWithNet();
-  if (event.code === "KeyQ") shovelHole();
   if (event.code === "KeyR") window.location.href = "index.html";
 }, { capture: true });
 
