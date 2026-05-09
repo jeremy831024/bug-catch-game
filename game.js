@@ -1081,6 +1081,14 @@ function update(dt) {
   for (const bug of (state.bugs || [])) updateBug(bug, dt);
   updateFloats(dt);
   updateHUD();
+  // 持续生成虫子
+  if (state.bugs.length < 15) {
+    state.bugSpawnTimer -= dt;
+    if (state.bugSpawnTimer <= 0) {
+      state.bugs.push(createBug(BUG_DEFS[randInt(0, BUG_DEFS.length - 1)]));
+      state.bugSpawnTimer = 4 + Math.random() * 3;
+    }
+  }
   } catch(e) { console.error("Update err:", e); }
 }
 
