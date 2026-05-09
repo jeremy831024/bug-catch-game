@@ -436,9 +436,11 @@ function createBurrows() {
         y: near.ty * TILE + TILE / 2 + 4,
       });
     }
+    const linked = connected && exits.length > 1;
     state.burrows.push({
       id: `burrow-${i}`,
-      connected,
+      connected: linked,
+      kind: linked ? "linked" : "deadEnd",
       style,
       exits,
       broken: false,
@@ -498,6 +500,7 @@ function createBug(def) {
     carryDistance: rand(8, 18),
     holeId: null,
     holeExitId: null,
+    holeKind: null,
     holeTimer: 0,
     holeCooldown: 0,
     visible: true,
@@ -815,6 +818,7 @@ function shovelHole(target = null) {
       if (bug.holeId === burrow.id) {
         bug.holeId = null;
         bug.holeExitId = null;
+        bug.holeKind = null;
         bug.holeCooldown = state.time + 3;
         bug.x = exit.x + rand(-18, 18);
         bug.y = exit.y + rand(-18, 18);
@@ -937,6 +941,7 @@ function updateBurrows(dt) {
     if (!burrow || burrow.broken) {
       bug.holeId = null;
       bug.holeExitId = null;
+      bug.holeKind = null;
       bug.holeCooldown = state.time + rand(3, 6);
       continue;
     }
@@ -944,6 +949,7 @@ function updateBurrows(dt) {
     if (!exits.length) {
       bug.holeId = null;
       bug.holeExitId = null;
+      bug.holeKind = null;
       bug.holeCooldown = state.time + rand(3, 6);
       continue;
     }
@@ -956,6 +962,7 @@ function updateBurrows(dt) {
     bug.y = nextExit.y + rand(-10, 10);
     bug.holeId = null;
     bug.holeExitId = null;
+    bug.holeKind = null;
     bug.holeCooldown = state.time + rand(3, 6);
     bug.vx = rand(-30, 30);
     bug.vy = rand(-30, 30);
@@ -983,10 +990,14 @@ function nearestOpenBurrow(bug) {
 function enterHole(bug, burrow, exit) {
   bug.holeId = burrow.id;
   bug.holeExitId = exit.key;
-  bug.holeTimer = rand(5, 15);
-  bug.holeCooldown = state.time + rand(4, 8);
+  bug.holeKind = burrow.connected ? "linked" : "deadEnd";
+  bug.holeTimer = burrow.connected ? rand(2.2, 4.2) : rand(5, 8);
+  bug.holeCooldown = state.time + rand(5, 9);
   bug.x = exit.x;
   bug.y = exit.y;
+  bug.vx = 0;
+  bug.vy = 0;
+  addFloat(exit.x, exit.y - 10, burrow.connected ? "钻进通道" : "躲进死路", burrow.connected ? "#b9e7ff" : "#ffd77a");
 }
 
 function updateBug(bug, dt) {
@@ -1188,6 +1199,7 @@ function updatePoison(dt) {
 function updateHoles(dt) {
   for (const burrow of state.burrows) {
     if (burrow.broken) continue;
+    burrow.bugs = burrow.bugs.filter((bug) => bug.holeId === burrow.id);
     for (const exit of burrow.exits) {
       exit.blocked = false;
       exit.key = `${exit.tx}:${exit.ty}`;
@@ -1201,11 +1213,12 @@ function updateHoles(dt) {
     if (!burrow || burrow.broken) {
       bug.holeId = null;
       bug.holeExitId = null;
+      bug.holeKind = null;
       bug.holeCooldown = state.time + rand(3, 6);
       continue;
     }
     const exits = burrow.exits;
-    let exit = exits[0];
+    let exit = exits.find((item) => `${item.tx}:${item.ty}` === bug.holeExitId) || exits[0];
     if (burrow.connected && exits.length > 1) {
       const choices = exits.filter((item) => `${item.tx}:${item.ty}` !== bug.holeExitId);
       exit = choices.length ? choices[randInt(0, choices.length - 1)] : exits[randInt(0, exits.length - 1)];
@@ -1214,11 +1227,17 @@ function updateHoles(dt) {
     bug.y = exit.y + rand(-10, 10);
     bug.holeId = null;
     bug.holeExitId = null;
+    bug.holeKind = null;
     bug.holeCooldown = state.time + rand(4, 8);
     bug.vx = rand(-20, 20);
     bug.vy = rand(-20, 20);
-    addFloat(bug.x, bug.y - 12, "出洞", "#d8ff86");
+    bug.pause = rand(0.4, 1.2);
+    addFloat(bug.x, bug.y - 12, burrow.connected ? "换洞口" : "限时出洞", burrow.connected ? "#b9e7ff" : "#d8ff86");
   }
+}
+
+function burrowOccupants(burrow) {
+  return state.bugs.filter((bug) => bug.holeId === burrow.id);
 }
 
 function updateFloats(dt) {
@@ -1363,6 +1382,8 @@ function drawPondDetails(time) {
 function drawHoles(time) {
   for (const burrow of (state.burrows || [])) {
     if (burrow.broken) continue;
+    const occupants = burrowOccupants(burrow);
+    const soonestExit = occupants.length ? Math.min(...occupants.map((bug) => bug.holeTimer)) : 0;
     for (const exit of burrow.exits) {
       const cx = exit.x, cy = exit.y;
       ctx.save();
@@ -1376,10 +1397,23 @@ function drawHoles(time) {
       if (burrow.connected) {
         ctx.fillStyle = "rgba(245, 216, 106, 0.35)";
         ctx.fillRect(cx - 13, cy - 6, 26, 2);
+        ctx.fillStyle = "#b9e7ff";
+        ctx.fillRect(cx - 16, cy + 8, 4, 4);
+        ctx.fillRect(cx + 12, cy + 8, 4, 4);
+      } else {
+        ctx.fillStyle = "#ffd77a";
+        ctx.fillRect(cx - 2, cy - 9, 4, 4);
+      }
+      if (!burrow.connected && occupants.length) {
+        const ratio = clamp(soonestExit / 8, 0, 1);
+        ctx.fillStyle = "rgba(38, 23, 14, 0.8)";
+        ctx.fillRect(cx - 13, cy - 17, 26, 5);
+        ctx.fillStyle = "#d8ff86";
+        ctx.fillRect(cx - 12, cy - 16, Math.max(2, 24 * ratio), 3);
       }
       ctx.fillStyle = `rgba(255,243,168,${0.45 + Math.sin(time * 2) * 0.1})`;
       ctx.font = '9px monospace'; ctx.textAlign = 'center';
-      ctx.fillText(burrow.style || '洞', cx, cy + 15);
+      ctx.fillText(burrow.connected ? "通道" : "死路", cx, cy + 16);
       ctx.restore();
     }
   }
