@@ -32,6 +32,7 @@
 
     <div style="width:100%">
       <a href="game.html" style="display:block;width:100%;padding:12px;border-radius:12px;text-align:center;font-size:16px;font-weight:600;text-decoration:none;background:linear-gradient(135deg,#4caf50,#8bc34a);color:#fff;margin-bottom:8px;font-family:inherit">🎮 开始抓虫冒险</a>
+      <a href="creator.html" style="display:block;width:100%;padding:12px;border-radius:12px;text-align:center;font-size:16px;font-weight:600;text-decoration:none;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.14);font-family:inherit;margin-bottom:8px">🧢 创造角色</a>
       <a href="collection.html" style="display:block;width:100%;padding:12px;border-radius:12px;text-align:center;font-size:16px;font-weight:600;text-decoration:none;background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);font-family:inherit">📖 昆虫图鉴</a>
     </div>
 
@@ -71,11 +72,12 @@ function renderScores(rankType) {
     let sorted;
     if (rankType === 'score' || !rankType) {
       // 总分排行
-      sorted = scores.sort((a,b) => b.score - a.score).slice(0,5);
+      sorted = [...scores].sort((a,b) => (b.score || 0) - (a.score || 0)).slice(0,5);
       list.innerHTML = sorted.map((s,i) => {
         const name = s.name || '探险家';
         const cnt = s.bugs ? Object.values(s.bugs).reduce((a,b)=>a+b,0) : 0;
-        return `<div class="score-row"><span>${i+1}. ${name}</span><span>${s.score}分 · ${cnt}只</span></div>`;
+        const score = s.score || 0;
+        return `<div class="score-row"><span>${i+1}. ${name}</span><span>${score}分 · ${cnt}只</span></div>`;
       }).join('');
     } else {
       // 某类虫子捕获排行

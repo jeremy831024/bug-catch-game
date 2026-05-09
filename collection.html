@@ -123,7 +123,7 @@ const BUGS = [
 function readCaught() {
   try {
     const a = JSON.parse(localStorage.getItem('bugCatchCaught')||'{}');
-    const b = JSON.parse(localStorage.getItem('bugRanks')||'[]').reduce((acc,i)=>{
+    const b = JSON.parse(localStorage.getItem('bugCatchLeaderboard')||'[]').reduce((acc,i)=>{
       if(i.bugs)Object.entries(i.bugs).forEach(([k,v])=>acc[k]=(acc[k]||0)+v);return acc;
     },{});
     if(typeof a==='object')Object.entries(a).forEach(([k,v])=>b[k]=(b[k]||0)+v);
