@@ -1,4 +1,20 @@
 // 选中的角色 (支持自定义+预设)
+function safeGetStorage(key, fallback = null) {
+  try {
+    return window.localStorage?.getItem(key) ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function safeSetStorage(key, value) {
+  try {
+    window.localStorage?.setItem(key, value);
+  } catch {
+    // Some in-app browsers block localStorage for file:// pages.
+  }
+}
+
 let selectedCharFile = 'assets/child_small.png';
 let playerName = '小探险家';
 const DEFAULT_PLAYER_CHAR = {
@@ -14,7 +30,7 @@ const DEFAULT_PLAYER_CHAR = {
 };
 let selectedChar = { ...DEFAULT_PLAYER_CHAR };
 try {
-  const saved = JSON.parse(localStorage.getItem('selectedChar'));
+  const saved = JSON.parse(safeGetStorage('selectedChar', 'null'));
   if (saved && saved.name) {
     playerName = saved.name;
     selectedChar = { ...DEFAULT_PLAYER_CHAR, ...saved };
@@ -22,15 +38,15 @@ try {
     selectedCharFile = 'assets/child_small.png'; // fallback
   } else {
     // 预设角色
-    const id = localStorage.getItem('selectedChar') || 'child';
+    const id = safeGetStorage('selectedChar', 'child');
     selectedCharFile = id === 'child' ? 'assets/child_small.png' : 'assets/' + id + '_small.png';
-    playerName = localStorage.getItem('selectedCharName') || '小探险家';
+    playerName = safeGetStorage('selectedCharName', '小探险家');
   }
 } catch {
   // 旧版预设
-  const id = localStorage.getItem('selectedChar') || 'child';
+  const id = safeGetStorage('selectedChar', 'child');
   selectedCharFile = id === 'child' ? 'assets/child_small.png' : 'assets/' + id + '_small.png';
-  playerName = localStorage.getItem('selectedCharName') || '小探险家';
+  playerName = safeGetStorage('selectedCharName', '小探险家');
 }
 
 // 保存玩家名到排行榜用
@@ -214,7 +230,7 @@ function addFloat(x, y, text, color) {
 
 function getLeaderboard() {
   try {
-    const scores = JSON.parse(localStorage.getItem("bugCatchLeaderboard") || "[]");
+    const scores = JSON.parse(safeGetStorage("bugCatchLeaderboard", "[]"));
     return Array.isArray(scores) ? scores : [];
   } catch {
     return [];
@@ -225,7 +241,7 @@ function setLeaderboard(entry) {
   const scores = getLeaderboard();
   scores.push(entry);
   scores.sort((a, b) => b.score - a.score);
-  localStorage.setItem("bugCatchLeaderboard", JSON.stringify(scores.slice(0, 20)));
+  safeSetStorage("bugCatchLeaderboard", JSON.stringify(scores.slice(0, 20)));
 }
 
 function updateLeaderboard() {
@@ -243,12 +259,12 @@ function updateLeaderboard() {
 function storeCaught(bugId) {
   let caught = {};
   try {
-    caught = JSON.parse(localStorage.getItem("bugCatchCaught") || "{}");
+    caught = JSON.parse(safeGetStorage("bugCatchCaught", "{}"));
   } catch {
     caught = {};
   }
   caught[bugId] = (caught[bugId] || 0) + 1;
-  localStorage.setItem("bugCatchCaught", JSON.stringify(caught));
+  safeSetStorage("bugCatchCaught", JSON.stringify(caught));
 }
 
 function buildMap() {
