@@ -635,6 +635,7 @@ body::after {
 .btn,
 .small-btn,
 .rank-tab,
+#rankToggle,
 .style-option,
 .start-btn,
 .char-name-input,
@@ -659,6 +660,11 @@ kbd {
 .glass-shell a:not(:first-child) {
   color: var(--ink) !important;
   font-weight: 800;
+}
+
+#rankToggle {
+  color: var(--ink) !important;
+  font-weight: 800 !important;
 }
 
 .leaderboard,
