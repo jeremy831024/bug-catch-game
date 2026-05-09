@@ -451,7 +451,7 @@ function createBug(def) {
 function spawnBugs() {
   // 初始只生成3-4只, 后续持续生成
   state.bugs = [];
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 12; i++) {
     state.bugs.push(createBug(BUG_DEFS[randInt(0, BUG_DEFS.length - 1)]));
   }
   state.bugSpawnTimer = 3;
