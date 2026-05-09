@@ -584,6 +584,7 @@ function createAudio() {
   let cicadaTimer = null;
 
   return {
+    ctx: ctxAudio,
     unlock() {
       if (ctxAudio.state === "suspended") ctxAudio.resume();
       if (!ambientTimer) {
@@ -619,56 +620,92 @@ function createAudio() {
 }
 
 let bgMusicPlaying = false;
+let bgMusicTimers = [];
 
 function startBgMusic() {
-  if (bgMusicPlaying || !audio.ctx) return;
+  if (bgMusicPlaying || !state.audio?.ctx) return;
   bgMusicPlaying = true;
-  const ctx = audio.ctx;
+  const ctx = state.audio.ctx;
   const master = ctx.createGain();
-  master.gain.value = 0.035;
+  master.gain.value = 0.026;
   master.connect(ctx.destination);
-  const notes = [262, 294, 330, 349, 392, 349, 330, 294, 262, 294, 330, 392, 440, 392, 330, 294];
-  let noteIdx = 0;
-  const bpm = 70, beatDuration = 60 / bpm;
-  function playNextNote() {
-    if (!bgMusicPlaying) return;
+
+  const melody = [
+    392, null, 440, 392, 330, null, 294, null,
+    330, 392, null, 330, 294, null, 262, null,
+    330, null, 392, 440, 392, null, 330, null,
+    294, 330, null, 294, 262, null, 294, null,
+  ];
+  const chords = [
+    [196, 262, 330],
+    [174.61, 220, 294],
+    [164.81, 220, 330],
+    [196, 246.94, 330],
+  ];
+  let step = 0;
+  const bpm = 58;
+  const beatDuration = 60 / bpm;
+
+  function scheduleTimer(fn, delay) {
+    const timer = setTimeout(fn, delay);
+    bgMusicTimers.push(timer);
+  }
+
+  function softTone(freq, start, duration, type, gainValue, destination) {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.value = notes[noteIdx % notes.length];
-    gain.gain.value = 0.08;
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + beatDuration * 0.9);
-    osc.connect(gain); gain.connect(master);
-    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + beatDuration * 0.9);
-    noteIdx++;
-    if (noteIdx % 4 === 0) {
-      const bass = ctx.createOscillator(); const bg = ctx.createGain();
-      bass.type = 'sine'; bass.frequency.value = 130;
-      bg.gain.value = 0.04; bg.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + beatDuration * 1.5);
-      bass.connect(bg); bg.connect(master);
-      bass.start(ctx.currentTime); bass.stop(ctx.currentTime + beatDuration * 1.5);
-    }
-    setTimeout(playNextNote, beatDuration * 0.25 * 1000);
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, start);
+    gain.gain.setValueAtTime(0.0001, start);
+    gain.gain.linearRampToValueAtTime(gainValue, start + 0.08);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+    osc.connect(gain);
+    gain.connect(destination);
+    osc.start(start);
+    osc.stop(start + duration + 0.05);
   }
-  function ambient() {
+
+  function playPhrase() {
     if (!bgMusicPlaying) return;
-    if (Math.random() < 0.3) {
-      const o = ctx.createOscillator(); const g = ctx.createGain();
-      o.type = 'sine'; o.frequency.value = 3000 + Math.random() * 2000;
-      g.gain.value = 0.008; g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
-      o.connect(g); g.connect(master);
-      o.start(ctx.currentTime); o.stop(ctx.currentTime + 0.3);
+    const now = ctx.currentTime;
+    const note = melody[step % melody.length];
+    if (note) softTone(note, now, beatDuration * 1.35, "triangle", 0.052, master);
+
+    if (step % 8 === 0) {
+      const chord = chords[(step / 8) % chords.length];
+      chord.forEach((freq, i) => softTone(freq, now + i * 0.015, beatDuration * 7.5, "sine", 0.018, master));
     }
-    setTimeout(ambient, 500 + Math.random() * 1500);
+
+    if (step % 16 === 4 || step % 16 === 12) {
+      softTone(784, now, beatDuration * 1.8, "sine", 0.012, master);
+    }
+
+    step++;
+    scheduleTimer(playPhrase, beatDuration * 1000);
   }
-  setTimeout(playNextNote, 500); setTimeout(ambient, 1000);
+
+  function summerAmbience() {
+    if (!bgMusicPlaying) return;
+    if (Math.random() < 0.38) {
+      softTone(2600 + Math.random() * 900, ctx.currentTime, 0.12, "sine", 0.006, master);
+    }
+    scheduleTimer(summerAmbience, 900 + Math.random() * 1800);
+  }
+
+  scheduleTimer(playPhrase, 250);
+  scheduleTimer(summerAmbience, 1200);
 }
 
-function stopBgMusic() { bgMusicPlaying = false; }
+function stopBgMusic() {
+  bgMusicPlaying = false;
+  bgMusicTimers.forEach(clearTimeout);
+  bgMusicTimers = [];
+}
 
 function initAudio() {
   if (!state.audio) state.audio = createAudio();
   if (state.audio) state.audio.unlock();
+  startBgMusic();
 }
 
 function pushCatch(bug, x, y, extra = 0) {
