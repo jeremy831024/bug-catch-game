@@ -466,9 +466,21 @@ nameInput.addEventListener('input', () => {
 document.getElementById('startBtn').addEventListener('click', () => {
   const name = nameInput.value.trim() || '小探险家';
   char.name = name;
-  localStorage.setItem('selectedChar', JSON.stringify(char));
-  localStorage.setItem('selectedCharName', name);
-  window.location.href = 'game.html';
+  try {
+    const memory = JSON.parse(window.name || '{}');
+    memory.selectedChar = JSON.stringify(char);
+    memory.selectedCharName = name;
+    window.name = JSON.stringify(memory);
+  } catch {
+    window.name = JSON.stringify({ selectedChar: JSON.stringify(char), selectedCharName: name });
+  }
+  try {
+    localStorage.setItem('selectedChar', JSON.stringify(char));
+    localStorage.setItem('selectedCharName', name);
+  } catch {
+    // file:// pages inside in-app browsers may block localStorage.
+  }
+  window.location.assign(new URL('game.html', window.location.href).href);
 });
 
 // 初始化

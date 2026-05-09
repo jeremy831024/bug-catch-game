@@ -1,6 +1,12 @@
 // 选中的角色 (支持自定义+预设)
 function safeGetStorage(key, fallback = null) {
   try {
+    const memory = JSON.parse(window.name || "{}");
+    if (memory && Object.prototype.hasOwnProperty.call(memory, key)) return memory[key];
+  } catch {
+    // Ignore malformed window.name data from other pages.
+  }
+  try {
     return window.localStorage?.getItem(key) ?? fallback;
   } catch {
     return fallback;
@@ -8,6 +14,13 @@ function safeGetStorage(key, fallback = null) {
 }
 
 function safeSetStorage(key, value) {
+  try {
+    const memory = JSON.parse(window.name || "{}");
+    memory[key] = value;
+    window.name = JSON.stringify(memory);
+  } catch {
+    window.name = JSON.stringify({ [key]: value });
+  }
   try {
     window.localStorage?.setItem(key, value);
   } catch {
@@ -148,6 +161,7 @@ const ui = {
   finalScore: document.getElementById("finalScore"),
   caughtSummary: document.getElementById("caughtSummary"),
   replayButton: document.getElementById("replayButton"),
+  musicButton: document.getElementById("musicButton"),
 };
 
 const BUG_DEFS = [
@@ -168,6 +182,7 @@ const state = {
   stamina: 100,
   poison: 0,
   ended: false,
+  savedRun: false,
   map: [],
   ponds: [],
   trees: [],
@@ -248,21 +263,31 @@ function getLeaderboard() {
 
 function setLeaderboard(entry) {
   const scores = getLeaderboard();
+  const existingIndex = scores.findIndex((item) => item.runId && item.runId === entry.runId);
+  if (existingIndex >= 0) scores.splice(existingIndex, 1);
   scores.push(entry);
   scores.sort((a, b) => b.score - a.score);
   safeSetStorage("bugCatchLeaderboard", JSON.stringify(scores.slice(0, 20)));
 }
 
+const RUN_ID = `run-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+function saveRunSnapshot(force = false) {
+  const count = Object.values(state.caught).reduce((sum, value) => sum + value, 0);
+  if (!force && count <= 0 && state.score <= 0) return;
+  setLeaderboard({
+    runId: RUN_ID,
+    name: SAVE_NAME,
+    score: Math.round(state.score),
+    count,
+    bugs: { ...state.caught },
+    date: Date.now(),
+  });
+  state.savedRun = true;
+}
+
 function updateLeaderboard() {
-  if (state.ended) {
-    setLeaderboard({
-      name: SAVE_NAME,
-      score: Math.round(state.score),
-      count: Object.values(state.caught).reduce((sum, value) => sum + value, 0),
-      bugs: { ...state.caught },
-      date: Date.now(),
-    });
-  }
+  saveRunSnapshot(true);
 }
 
 function storeCaught(bugId) {
@@ -636,7 +661,7 @@ function startBgMusic() {
   bgMusicPlaying = true;
   const ctx = state.audio.ctx;
   const master = ctx.createGain();
-  master.gain.value = 0.026;
+  master.gain.value = 0.06;
   master.connect(ctx.destination);
 
   const melody = [
@@ -678,15 +703,15 @@ function startBgMusic() {
     if (!bgMusicPlaying) return;
     const now = ctx.currentTime;
     const note = melody[step % melody.length];
-    if (note) softTone(note, now, beatDuration * 1.35, "triangle", 0.052, master);
+    if (note) softTone(note, now, beatDuration * 1.35, "triangle", 0.075, master);
 
     if (step % 8 === 0) {
       const chord = chords[(step / 8) % chords.length];
-      chord.forEach((freq, i) => softTone(freq, now + i * 0.015, beatDuration * 7.5, "sine", 0.018, master));
+      chord.forEach((freq, i) => softTone(freq, now + i * 0.015, beatDuration * 7.5, "sine", 0.03, master));
     }
 
     if (step % 16 === 4 || step % 16 === 12) {
-      softTone(784, now, beatDuration * 1.8, "sine", 0.012, master);
+      softTone(784, now, beatDuration * 1.8, "sine", 0.02, master);
     }
 
     step++;
@@ -715,12 +740,14 @@ function initAudio() {
   if (!state.audio) state.audio = createAudio();
   if (state.audio) state.audio.unlock();
   startBgMusic();
+  if (ui.musicButton) ui.musicButton.textContent = bgMusicPlaying ? "🎵 播放中" : "🎵 开音乐";
 }
 
 function pushCatch(bug, x, y, extra = 0) {
   state.score += bug.points + extra;
   state.caught[bug.id] = (state.caught[bug.id] || 0) + 1;
   storeCaught(bug.id);
+  saveRunSnapshot();
   addFloat(x, y, `${bug.points >= 0 ? "+" : ""}${bug.points + extra}`, bug.points >= 0 ? "#ffd349" : "#ff6f6f");
   if (bug.toxic) triggerPoison();
   if (state.audio) state.audio.catch();
@@ -2098,7 +2125,10 @@ window.addEventListener("keydown", (event) => {
   if (event.code.startsWith("Arrow") || ["KeyE", "Space", "KeyQ", "KeyR"].includes(event.code)) event.preventDefault();
   initAudio();
   if (event.code === "KeyE" || event.code === "Space") catchWithNet();
-  if (event.code === "KeyR") window.location.href = "index.html";
+  if (event.code === "KeyR") {
+    saveRunSnapshot();
+    window.location.href = "index.html";
+  }
 }, { capture: true });
 
 document.addEventListener("keyup", (event) => {
@@ -2106,8 +2136,18 @@ document.addEventListener("keyup", (event) => {
 });
 
 ui.replayButton.addEventListener("click", () => window.location.reload());
+document.querySelector('a[href="index.html"]')?.addEventListener("click", () => saveRunSnapshot());
+window.addEventListener("pagehide", () => saveRunSnapshot());
 
 canvas.addEventListener("pointerdown", () => initAudio(), { passive: true });
+document.addEventListener("pointerdown", () => initAudio(), { passive: true });
+if (ui.musicButton) {
+  ui.musicButton.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    initAudio();
+  });
+}
 
 function initGame() {
   ctx.fillStyle = "#FF0"; ctx.font = "24px bold sans-serif"; ctx.textAlign = "center"; ctx.fillText("🐛 游戏启动中...", 480, 320);

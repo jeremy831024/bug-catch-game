@@ -122,8 +122,19 @@ const BUGS = [
 
 function readCaught() {
   try {
-    const a = JSON.parse(localStorage.getItem('bugCatchCaught')||'{}');
-    const b = JSON.parse(localStorage.getItem('bugCatchLeaderboard')||'[]').reduce((acc,i)=>{
+    function readStorage(key, fallback) {
+      try {
+        const memory = JSON.parse(window.name || '{}');
+        if (memory && Object.prototype.hasOwnProperty.call(memory, key)) return memory[key];
+      } catch {}
+      try {
+        return localStorage.getItem(key) || fallback;
+      } catch {
+        return fallback;
+      }
+    }
+    const a = JSON.parse(readStorage('bugCatchCaught', '{}'));
+    const b = JSON.parse(readStorage('bugCatchLeaderboard', '[]')).reduce((acc,i)=>{
       if(i.bugs)Object.entries(i.bugs).forEach(([k,v])=>acc[k]=(acc[k]||0)+v);return acc;
     },{});
     if(typeof a==='object')Object.entries(a).forEach(([k,v])=>b[k]=(b[k]||0)+v);
