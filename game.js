@@ -248,6 +248,35 @@ function distance(a, b) {
   return Math.hypot(a.x - b.x, a.y - b.y);
 }
 
+function treePerch(tree) {
+  return {
+    tree,
+    x: tree.tx * TILE + TILE / 2,
+    y: tree.ty * TILE + TILE / 2 - 13,
+  };
+}
+
+function randomTreePerch(exclude = null) {
+  const trees = state.trees.filter((tree) => tree !== exclude);
+  const pool = trees.length ? trees : state.trees;
+  if (!pool.length) return { tree: null, x: WIDTH / 2, y: HEIGHT / 2 };
+  return treePerch(pool[randInt(0, pool.length - 1)]);
+}
+
+function nearestTreePerch(x, y) {
+  let best = null;
+  let bestDist = Infinity;
+  for (const tree of state.trees) {
+    const perch = treePerch(tree);
+    const d = Math.hypot(perch.x - x, perch.y - y);
+    if (d < bestDist) {
+      best = perch;
+      bestDist = d;
+    }
+  }
+  return best || { tree: null, x, y };
+}
+
 function addFloat(x, y, text, color) {
   state.floats.push({ x, y, text, color, life: 1.2 });
 }
@@ -455,11 +484,7 @@ function bugDefById(id) {
 
 function randomSpawnPoint(def) {
   if (def.id === "cicada") {
-    const side = randInt(0, 3);
-    if (side === 0) return { x: rand(32, WIDTH - 32), y: 24 };
-    if (side === 1) return { x: rand(32, WIDTH - 32), y: HEIGHT - 24 };
-    if (side === 2) return { x: 24, y: rand(32, HEIGHT - 32) };
-    return { x: WIDTH - 24, y: rand(32, HEIGHT - 32) };
+    return randomTreePerch();
   }
   if (def.id === "spider") {
     const x = randInt(6, COLS - 7) * TILE + TILE / 2;
@@ -507,6 +532,9 @@ function createBug(def) {
     alpha: 1,
     chaos: rand(0, 1000),
     textTimer: rand(1.4, 3.5),
+    cicadaState: "perched",
+    perchTree: spawn.tree || null,
+    targetTree: null,
   };
   if (def.id === "dung") {
     bug.ball = { x: bug.x + 10, y: bug.y + 2 };
@@ -1062,27 +1090,64 @@ function updateBug(bug, dt) {
   } else if (bug.id === "cicada") {
     bug.alpha = 1;
     bug.pause -= dt;
-    bug.x = clamp(bug.x, 18, WIDTH - 18);
-    bug.y = clamp(bug.y, 18, HEIGHT - 18);
-    if (bug.pause <= 0) {
+    if (!state.trees.length) return;
+    if (!bug.perchTree) {
+      const perch = nearestTreePerch(bug.x, bug.y);
+      bug.perchTree = perch.tree;
+      bug.x = perch.x;
+      bug.y = perch.y;
+      bug.cicadaState = "perched";
+      bug.pause = rand(2, 4);
+    }
+
+    if (bug.cicadaState !== "flying") {
+      const perch = treePerch(bug.perchTree);
+      bug.x = perch.x;
+      bug.y = perch.y + Math.sin(state.time * 3 + bug.chaos) * 1.2;
+      bug.vx = 0;
+      bug.vy = 0;
       bug.textTimer -= dt;
       if (bug.textTimer <= 0) {
         addFloat(bug.x, bug.y - 16, "知了", "#ffe9a4");
         if (state.audio) state.audio.cicada();
         bug.textTimer = rand(2.8, 5.5);
       }
-      bug.vx *= 0.95;
-      bug.vy *= 0.95;
-      if (Math.random() < 0.008) {
-        bug.vx = rand(-10, 10);
-        bug.vy = rand(-8, 8);
+      if (bug.pause <= 0 && state.trees.length > 1) {
+        const target = randomTreePerch(bug.perchTree);
+        bug.targetTree = target.tree;
+        bug.targetX = target.x;
+        bug.targetY = target.y;
+        bug.cicadaState = "flying";
+        bug.pause = rand(2.2, 4.2);
+        addFloat(bug.x, bug.y - 18, "飞走", "#d8ff86");
       }
-      const edgeBias = 0.7;
-      if (bug.x < 40) bug.vx += edgeBias;
-      if (bug.x > WIDTH - 40) bug.vx -= edgeBias;
-      if (bug.y < 40) bug.vy += edgeBias;
-      if (bug.y > HEIGHT - 40) bug.vy -= edgeBias;
+      return;
     }
+
+    const dx = bug.targetX - bug.x;
+    const dy = bug.targetY - bug.y;
+    const dist = Math.hypot(dx, dy);
+    if (dist <= 3) {
+      bug.perchTree = bug.targetTree;
+      const perch = treePerch(bug.perchTree);
+      bug.x = perch.x;
+      bug.y = perch.y;
+      bug.targetTree = null;
+      bug.cicadaState = "perched";
+      bug.pause = rand(2.8, 6);
+      bug.vx = 0;
+      bug.vy = 0;
+      addFloat(bug.x, bug.y - 16, "停树上", "#ffe9a4");
+      return;
+    }
+    const flySpeed = 86;
+    bug.dir = Math.atan2(dy, dx);
+    bug.x += (dx / dist) * flySpeed * dt;
+    bug.y += (dy / dist) * flySpeed * dt + Math.sin(state.time * 10 + bug.chaos) * 10 * dt;
+    bug.wing += dt * 16;
+    bug.x = clamp(bug.x, 18, WIDTH - 18);
+    bug.y = clamp(bug.y, 18, HEIGHT - 18);
+    return;
   } else if (bug.id === "spider") {
     const inWeb = distance({ x: bug.x, y: bug.y }, bug.webCenter) < bug.webRadius;
     const speed = inWeb ? 70 : 26;
@@ -1697,13 +1762,24 @@ function drawBug(bug) {
   }
   if (bug.id === "cicada") {
     ctx.fillStyle = "#5f8a45";
-    ctx.fillRect(bug.x - 4, bug.y + 4, 8, 18);
+    ctx.fillRect(bug.x - 4, bug.y + 3, 8, 16);
     ctx.beginPath();
-    ctx.arc(bug.x, bug.y + 2, 14, Math.PI, 0);
+    ctx.arc(bug.x, bug.y + 1, 12, Math.PI, 0);
     ctx.fill();
+    if (bug.cicadaState === "flying") {
+      const flap = Math.sin(state.time * 18 + bug.chaos) * 4;
+      ctx.strokeStyle = "rgba(226, 247, 210, 0.72)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.ellipse(bug.x - 8, bug.y - 3, 7, 3 + Math.abs(flap), -0.4, 0, Math.PI * 2);
+      ctx.ellipse(bug.x + 8, bug.y - 3, 7, 3 + Math.abs(flap), 0.4, 0, Math.PI * 2);
+      ctx.stroke();
+    }
   }
-  ctx.fillStyle = "rgba(38,23,14,0.2)";
-  ctx.fillRect(Math.round(bug.x - bug.size), Math.round(bug.y + bug.size * 0.45), Math.round(bug.size * 2), 3);
+  if (bug.id !== "cicada" || bug.cicadaState === "flying") {
+    ctx.fillStyle = "rgba(38,23,14,0.2)";
+    ctx.fillRect(Math.round(bug.x - bug.size), Math.round(bug.y + bug.size * 0.45), Math.round(bug.size * 2), 3);
+  }
   drawRealBug(bug);
   if (bug.id === "cicada" && bug.showCall) {
     ctx.fillStyle = "rgba(255,231,164,0.9)";
