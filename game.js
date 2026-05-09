@@ -1740,6 +1740,7 @@ canvas.addEventListener("pointerdown", () => initAudio(), { passive: true });
 
 function initGame() {
   ctx.fillStyle = "#FF0"; ctx.font = "24px bold sans-serif"; ctx.textAlign = "center"; ctx.fillText("🐛 游戏启动中...", 480, 320);
+  const ls = document.getElementById("loadStatus"); if(ls) ls.style.display = "none";
   buildMap();
   createBurrows();
   spawnBugs();
