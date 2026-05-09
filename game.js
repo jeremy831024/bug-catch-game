@@ -661,7 +661,7 @@ function startBgMusic() {
   bgMusicPlaying = true;
   const ctx = state.audio.ctx;
   const master = ctx.createGain();
-  master.gain.value = 0.06;
+  master.gain.value = 0.13;
   master.connect(ctx.destination);
 
   const melody = [
@@ -703,15 +703,15 @@ function startBgMusic() {
     if (!bgMusicPlaying) return;
     const now = ctx.currentTime;
     const note = melody[step % melody.length];
-    if (note) softTone(note, now, beatDuration * 1.35, "triangle", 0.075, master);
+    if (note) softTone(note, now, beatDuration * 1.35, "triangle", 0.105, master);
 
     if (step % 8 === 0) {
       const chord = chords[(step / 8) % chords.length];
-      chord.forEach((freq, i) => softTone(freq, now + i * 0.015, beatDuration * 7.5, "sine", 0.03, master));
+      chord.forEach((freq, i) => softTone(freq, now + i * 0.015, beatDuration * 7.5, "sine", 0.045, master));
     }
 
     if (step % 16 === 4 || step % 16 === 12) {
-      softTone(784, now, beatDuration * 1.8, "sine", 0.02, master);
+      softTone(784, now, beatDuration * 1.8, "sine", 0.032, master);
     }
 
     step++;
@@ -721,7 +721,7 @@ function startBgMusic() {
   function summerAmbience() {
     if (!bgMusicPlaying) return;
     if (Math.random() < 0.38) {
-      softTone(2600 + Math.random() * 900, ctx.currentTime, 0.12, "sine", 0.006, master);
+      softTone(2600 + Math.random() * 900, ctx.currentTime, 0.12, "sine", 0.01, master);
     }
     scheduleTimer(summerAmbience, 900 + Math.random() * 1800);
   }
@@ -740,7 +740,7 @@ function initAudio() {
   if (!state.audio) state.audio = createAudio();
   if (state.audio) state.audio.unlock();
   startBgMusic();
-  if (ui.musicButton) ui.musicButton.textContent = bgMusicPlaying ? "🎵 播放中" : "🎵 开音乐";
+  if (ui.musicButton) ui.musicButton.textContent = bgMusicPlaying ? "🎵 音乐已开" : "🎵 开音乐";
 }
 
 function pushCatch(bug, x, y, extra = 0) {
