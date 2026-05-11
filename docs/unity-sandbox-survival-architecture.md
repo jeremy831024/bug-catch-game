@@ -73,6 +73,7 @@ Assets/
 - 不同虫子使用独立行为配置
 - 逃跑型、攻击型、伪装型、飞行型、夜行型
 - 图鉴解锁和捕获记录
+- 每种虫子配置独立的躲藏习性、出没条件、群居倾向、声音提示和视觉定位提示
 
 ### 4.5 Survival System
 
@@ -118,6 +119,7 @@ Assets/
 - 每种虫子对应一个数据配置
 - 视觉占位符、正式模型、动画剪辑分离
 - 状态机不依赖具体模型
+- 音频提示、近距离轮廓变化、草丛/树木/洞口反馈都应配置化
 
 ### 5.3 地形
 
@@ -194,6 +196,7 @@ Assets/
 - 地形配置
 - 天气配置
 - 任务配置
+- 昆虫感知配置
 
 示例字段：
 
@@ -205,6 +208,10 @@ public class InsectConfig : ScriptableObject {
   public int scoreValue;
   public float speed;
   public float spawnWeight;
+  public string hideHabit;
+  public string socialType;
+  public string activeTime;
+  public AudioClip cueAudio;
   public GameObject placeholderPrefab;
   public GameObject finalPrefab;
   public AnimationClip idleClip;
@@ -240,6 +247,8 @@ public class InsectConfig : ScriptableObject {
 - 加入更精细特效
 - 增加更丰富动画状态
 - 优化加载与过场
+
+昆虫生态与感知规范见 [unity-insect-ecology-and-sensing.md](./unity-insect-ecology-and-sensing.md)。
 
 配套的占位符和正式资源生成提示词见 [unity-sandbox-art-prompts.md](./unity-sandbox-art-prompts.md)。
 
