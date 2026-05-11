@@ -130,6 +130,8 @@ Assets/
 - 视觉占位符、正式模型、动画剪辑分离
 - 状态机不依赖具体模型
 - 音频提示、近距离轮廓变化、草丛/树木/洞口反馈都应配置化
+- 物种池、保护状态、危险状态和地区适配性独立管理，避免把“能做”误写成“能抓”
+- 同一虫群可先共用低模骨架和动画，再按物种替换翅型、甲壳、颜色和音效
 
 ### 5.3 地形
 
@@ -222,12 +224,18 @@ Assets/
 public class InsectConfig : ScriptableObject {
   public string id;
   public string displayName;
+  public string speciesGroup;
+  public string safetyTag;
+  public string captureMode;
+  public string regionTag;
+  public bool capturable;
   public int scoreValue;
   public float speed;
   public float spawnWeight;
   public string hideHabit;
   public string socialType;
   public string activeTime;
+  public string sourceNote;
   public AudioClip cueAudio;
   public GameObject placeholderPrefab;
   public GameObject finalPrefab;

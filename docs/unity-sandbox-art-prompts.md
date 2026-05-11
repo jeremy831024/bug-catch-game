@@ -190,6 +190,68 @@ A stylized low-poly dung beetle pushing a small round ball, dark brown shell, co
 Dung beetle animations: push rolling ball, struggle push, turn around, idle, warning bump, captured or missed reaction, clear comic motion
 ```
 
+### 4.8 鹿角花金龟
+
+```text
+A stylized low-poly stag flower beetle, glossy dark shell, subtle horned head shape, large rounded body, rare high-value forest insect, friendly not realistic, Unity-ready 3D game asset, separate shell and horn materials
+```
+
+动画提示：
+
+```text
+Stag flower beetle animations: slow crawl, short lift-off, wing buzz, defensive pause, captured sparkle reaction, heavy readable movement
+```
+
+### 4.9 铜绿丽金龟
+
+```text
+A stylized low-poly copper green chafer beetle, metallic green shell, rounded body, bright reflective surface, evening light attraction behavior, Unity-ready 3D game asset, separate shell and leg materials
+```
+
+动画提示：
+
+```text
+Copper green chafer animations: idle climb, short flutter flight, light attraction turn, tree perch, captured wiggle, readable movement for third-person camera
+```
+
+### 4.10 蟋蟀
+
+```text
+A stylized low-poly cricket insect for a summer wilderness game, brown-green body, long antennae, strong jumping legs, readable ground-level silhouette, friendly and clean, Unity-ready 3D asset
+```
+
+动画提示：
+
+```text
+Cricket animations: idle antenna twitch, short hop, chirp loop, grass hide, flee jump, captured flutter, clear night insect motion
+```
+
+### 4.11 蝴蝶样式扩展
+
+#### 4.11.1 菜粉蝶 / 云粉蝶
+
+```text
+A stylized low-poly white butterfly, soft pale wings, small body, gentle summer meadow style, readable and calm, Unity-ready 3D asset
+```
+
+#### 4.11.2 黄钩蛱蝶 / 红锯蛱蝶
+
+```text
+A stylized low-poly orange-and-black butterfly, sharp wing edges, fast forest-edge species look, high-contrast wing patterns, readable flying silhouette, Unity-ready 3D asset
+```
+
+#### 4.11.3 金凤蝶 / 柑橘凤蝶
+
+```text
+A stylized low-poly swallowtail butterfly, large elegant wings, bold black and yellow pattern, premium rare insect look, Unity-ready 3D asset, separate wing and body materials
+```
+
+#### 4.11.4 蓝灰蝶 / 琉璃灰蝶
+
+```text
+A stylized low-poly tiny blue-gray butterfly, small delicate wings, subtle reflective highlights, difficult-to-see meadow insect style, Unity-ready 3D asset
+```
+
 ## 5. 障碍与威胁
 
 ### 5.1 蜘蛛网
@@ -226,6 +288,12 @@ A stylized low-poly frog predator, green rounded body, big friendly eyes but ale
 
 ```text
 A stylized low-poly small bird predator, simple wings, sharp but cute beak, colorful feathers, readable flying enemy silhouette, kid-friendly adventure game style, Unity-ready
+```
+
+### 5.7 胡蜂巢穴
+
+```text
+A stylized low-poly hornet nest hazard, hanging paper nest or ground nest variant, warning stripes, readable danger prop for a wilderness survival game, non-realistic, Unity-ready
 ```
 
 ## 6. 道具与补给
@@ -300,4 +368,3 @@ A clean rounded game UI icon, stylized low-poly inspired, warm summer adventure 
 - 碰撞体不依赖模型网格
 - 动画状态名必须和技术设计保持一致
 - 低多边形优先，保证 Unity 实时运行
-
