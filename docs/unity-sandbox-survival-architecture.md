@@ -67,15 +67,24 @@ Assets/
 - 速度升级
 - 背包管理
 - 受击、中毒、加速、隐身等状态
+- 装备槽位、属性修正、外观附着和耐久管理
 
-### 4.4 Insect System
+### 4.4 Equipment System
+
+- 装备槽位管理
+- 装备属性修正
+- 装备耐久、升级、修复
+- 装备与角色外观挂接
+- 装备栏和道具背包分离
+
+### 4.5 Insect System
 
 - 不同虫子使用独立行为配置
 - 逃跑型、攻击型、伪装型、飞行型、夜行型
 - 图鉴解锁和捕获记录
 - 每种虫子配置独立的躲藏习性、出没条件、群居倾向、声音提示和视觉定位提示
 
-### 4.5 Survival System
+### 4.6 Survival System
 
 - 体力持续消耗
 - 食物恢复
@@ -83,21 +92,21 @@ Assets/
 - 安全区休息恢复
 - 体力归零结束游戏
 
-### 4.6 Hazard System
+### 4.7 Hazard System
 
 - 蜘蛛网减速
 - 毒蘑菇中毒
 - 捕食者追击
 - 泥坑、断崖、湖泊阻挡
 
-### 4.7 Time Weather System
+### 4.8 Time Weather System
 
 - 昼夜循环
 - 夜晚视野缩小
 - 雨天摩擦降低、惯性增强
 - 雾天视野受限
 
-### 4.8 UI System
+### 4.9 UI System
 
 - 首页
 - 预设角色选择
@@ -105,6 +114,7 @@ Assets/
 - 图鉴
 - 排行榜
 - 任务面板
+- 装备栏与装备对比面板
 
 ## 5. 资源解耦策略
 
@@ -132,6 +142,12 @@ Assets/
 - 道具图标、3D 模型、功能逻辑分离
 - 食物、解毒药、手电、陷阱工具都通过 ScriptableObject 配置
 - 角色、树木、昆虫、道具和环境提示词统一维护在 [unity-sandbox-art-prompts.md](./unity-sandbox-art-prompts.md)
+
+### 5.5 装备
+
+- 装备外观、属性、槽位、耐久和升级分离
+- 头部、上身、下身、鞋子、手部、背部、工具位、饰品位独立配置
+- 装备系统规范见 [unity-equipment-system-spec.md](./unity-equipment-system-spec.md)
 
 ## 6. 摄像机与灯光
 
@@ -193,6 +209,7 @@ Assets/
 - 昆虫配置
 - 预设角色配置
 - 道具配置
+- 装备配置
 - 地形配置
 - 天气配置
 - 任务配置
@@ -216,6 +233,19 @@ public class InsectConfig : ScriptableObject {
   public GameObject finalPrefab;
   public AnimationClip idleClip;
   public AnimationClip fleeClip;
+}
+
+public class EquipmentConfig : ScriptableObject {
+  public string id;
+  public string displayName;
+  public string slotType;
+  public int rarity;
+  public float durabilityMax;
+  public float moveSpeedBonus;
+  public float staminaBonus;
+  public float poisonResistanceBonus;
+  public GameObject placeholderPrefab;
+  public GameObject finalPrefab;
 }
 ```
 
