@@ -253,6 +253,8 @@ public class InsectConfig : ScriptableObject {
 
 ## 13. 迭代路线
 
+玩法优先级与分期规划见 [unity-sandbox-gameplay-roadmap.md](./unity-sandbox-gameplay-roadmap.md)。
+
 ### Phase 1
 
 - Unity 场景、第三人称摄像机、基础移动、碰撞
