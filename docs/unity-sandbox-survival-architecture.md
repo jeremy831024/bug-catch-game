@@ -129,6 +129,7 @@ Assets/
 
 - 道具图标、3D 模型、功能逻辑分离
 - 食物、解毒药、手电、陷阱工具都通过 ScriptableObject 配置
+- 角色、树木、昆虫、道具和环境提示词统一维护在 [unity-sandbox-art-prompts.md](./unity-sandbox-art-prompts.md)
 
 ## 6. 摄像机与灯光
 
@@ -240,6 +241,8 @@ public class InsectConfig : ScriptableObject {
 - 增加更丰富动画状态
 - 优化加载与过场
 
+配套的占位符和正式资源生成提示词见 [unity-sandbox-art-prompts.md](./unity-sandbox-art-prompts.md)。
+
 ## 12. 性能建议
 
 - 地图按区块加载
@@ -278,4 +281,3 @@ public class InsectConfig : ScriptableObject {
 - 体力系统可完成一局完整生存循环
 - 昼夜与天气能真实影响可视和玩法
 - 资源替换不会破坏玩法逻辑
-
