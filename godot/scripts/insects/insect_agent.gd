@@ -89,12 +89,14 @@ func _wander(delta: float) -> void:
 
 
 func _move(direction: Vector3, speed: float, delta: float) -> void:
-	if direction.length_squared() <= 0.001:
+	var planar_direction := Vector3(direction.x, 0.0, direction.z)
+	if planar_direction.length_squared() <= 0.001:
 		return
-	global_position += direction.normalized() * speed * delta
+	planar_direction = planar_direction.normalized()
+	global_position += planar_direction * speed * delta
 	global_position.x = clamp(global_position.x, -28.0, 28.0)
 	global_position.z = clamp(global_position.z, -28.0, 28.0)
-	look_at(global_position + direction, Vector3.UP)
+	basis = Basis.looking_at(planar_direction, Vector3.UP)
 
 
 func _animate_placeholder() -> void:
