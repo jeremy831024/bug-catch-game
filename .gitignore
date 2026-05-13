@@ -2,3 +2,16 @@ node_modules/
 .env
 .DS_Store
 *.log
+
+# Unity generated files
+unity/Library/
+unity/Temp/
+unity/Obj/
+unity/Build/
+unity/Builds/
+unity/Logs/
+unity/UserSettings/
+unity/MemoryCaptures/
+unity/*.csproj
+unity/*.sln
+unity/*.user
