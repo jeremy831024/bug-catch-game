@@ -9,13 +9,13 @@ Control a kid exploring the wild, catching bugs with a net and digging holes wit
 The repository now has two tracks:
 
 - `index.html` / `game.html`: original browser prototype.
-- `unity/`: new Unity LTS 3D sandbox survival prototype.
+- `godot/`: new Godot 4 3D sandbox survival prototype.
 
-For the Unity version, start with:
+For the Godot version, start with:
 
-- PRD: `docs/unity-sandbox-survival-prd.md`
-- Technical design: `docs/unity-sandbox-survival-architecture.md`
-- Development start guide: `docs/unity-dev-start.md`
+- PRD: `docs/godot-sandbox-survival-prd.md`
+- Technical design: `docs/godot-sandbox-survival-architecture.md`
+- Development start guide: `docs/godot-dev-start.md`
 
 ## How to Play
 

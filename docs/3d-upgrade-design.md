@@ -1,6 +1,6 @@
 # 抓虫大冒险 3D 升级设计文档
 
-> 注：本文件是早期 3D Web 升级方案的技术背景记录。当前主方向已切换为 Unity 沙盒生存方案，团队讨论请优先查看 [unity-sandbox-survival-prd.md](./unity-sandbox-survival-prd.md) 和 [unity-sandbox-survival-architecture.md](./unity-sandbox-survival-architecture.md)。
+> 注：本文件是早期 3D Web 升级方案的技术背景记录。当前主方向已切换为 Godot 沙盒生存方案，团队讨论请优先查看 [godot-sandbox-survival-prd.md](./godot-sandbox-survival-prd.md) 和 [godot-sandbox-survival-architecture.md](./godot-sandbox-survival-architecture.md)。
 
 ## 1. 项目目标
 
